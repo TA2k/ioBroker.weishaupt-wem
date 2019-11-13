@@ -8,9 +8,12 @@
 // you need to create an adapter
 const utils = require("@iobroker/adapter-core");
 
-// Load your modules here, e.g.:
-// const fs = require("fs");
 
+const request = require("request");
+const jsdom = require("jsdom");
+const {
+	JSDOM
+} = jsdom;
 class WeishauptWem extends utils.Adapter {
 
 	/**
@@ -26,6 +29,11 @@ class WeishauptWem extends utils.Adapter {
 		this.on("stateChange", this.onStateChange.bind(this));
 		// this.on("message", this.onMessage.bind(this));
 		this.on("unload", this.onUnload.bind(this));
+
+
+		this.jar = request.jar();
+		this.refreshTokenInterval = null;
+		this.updateInterval = null;
 	}
 
 	/**
@@ -34,56 +42,171 @@ class WeishauptWem extends utils.Adapter {
 	async onReady() {
 		// Initialize your adapter here
 
-		// Reset the connection indicator during startup
 		this.setState("info.connection", false, true);
+		// Reset the connection indicator during startup
+		this.login().then(() => {
+			this.log.debug("Login successful");
+			this.setState("info.connection", true, true);
+			// this.getHomesStatus().then(() => {});
+			// this.updateInterval = setInterval(() => {
+			// 	this.getHomesStatus();
+			// }, this.config.interval * 60 * 1000)
 
-		// The adapters config (in the instance object everything under the attribute "native") is accessible via
-		// this.config:
-		this.log.info("config option1: " + this.config.option1);
-		this.log.info("config option2: " + this.config.option2);
-
-		/*
-		For every state in the system there has to be also an object of type state
-		Here a simple template for a boolean variable named "testVariable"
-		Because every adapter instance uses its own unique namespace variable names can't collide with other adapters variables
-		*/
-		await this.setObjectAsync("testVariable", {
-			type: "state",
-			common: {
-				name: "testVariable",
-				type: "boolean",
-				role: "indicator",
-				read: true,
-				write: true,
-			},
-			native: {},
 		});
 
-		// in this template all states changes inside the adapters namespace are subscribed
-		this.subscribeStates("*");
 
-		/*
-		setState examples
-		you will notice that each setState will cause the stateChange event to fire (because of above subscribeStates cmd)
-		*/
-		// the variable testVariable is set to true as command (ack=false)
-		await this.setStateAsync("testVariable", true);
-
-		// same thing, but the value is flagged "ack"
-		// ack should be always set to true if the value is received from or acknowledged from the target system
-		await this.setStateAsync("testVariable", { val: true, ack: true });
-
-		// same thing, but the state is deleted after 30s (getState will return null afterwards)
-		await this.setStateAsync("testVariable", { val: true, ack: true, expire: 30 });
-
-		// examples for the checkPassword/checkGroup functions
-		let result = await this.checkPasswordAsync("admin", "iobroker");
-		this.log.info("check user admin pw ioboker: " + result);
-
-		result = await this.checkGroupAsync("admin", "admin");
-		this.log.info("check group user admin group admin: " + result);
 	}
 
+	login() {
+		return new Promise((resolve, reject) => {
+			/*
+				
+					}
+			*/
+			request.get({
+				url: "https://www.wemportal.com/Web/Login.aspx",
+				headers: {
+					'Accept-Language': 'en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6',
+					'Accept-Encoding': 'gzip, deflate, br',
+					'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36',
+					"Accept": "*/*"
+				},
+				gzip: true,
+				jar: this.jar,
+				followAllRedirects: true
+			}, (err, resp, body) => {
+				if (err) {
+					this.log.error(err);
+					reject();
+				}
+
+				try {
+					const dom = new JSDOM(body);
+					let form = {};
+					for (const formElement of dom.window.document.querySelectorAll("input")) {
+						if (formElement.type === "hidden") {
+							//form += formElement.name + "=" + formElement.value + "&";
+							form[formElement.name] = formElement.value;
+						}
+					}
+					form["ctl00_content_tbxUserName"] = this.config.user;
+					form["ctl00$content$tbxPassword"] = this.config.password;
+					request.post({
+						url: "https://www.wemportal.com/Web/Login.aspx",
+						headers: {
+							'Accept-Language': 'en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6',
+							'Accept-Encoding': 'gzip, deflate, br',
+							'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36',
+							"Accept": "*/*",
+							"Content-Type": "application/x-www-form-urlencoded",
+						},
+						form: form,
+						jar: this.jar,
+						followAllRedirects: true,
+					}, (err, resp, body) => {
+						if (err) {
+							this.log.error(err);
+							reject();
+						} else {
+							
+							try {
+								this.log.debug(body);
+							} catch (error) {
+								this.log.error(error);
+								reject();
+							}
+						}
+
+					});
+
+				} catch (error) {
+					this.log.error(error);
+					reject();
+				}
+			});
+		});
+	}
+
+	refreshToken() {
+		return new Promise((resolve, reject) => {
+			this.log.debug("refreshToken");
+
+			request.post({
+				url: "",
+				headers: {
+					
+				},
+				form: {
+				},
+				followAllRedirects: true
+			}, (err, resp, body) => {
+				if (err) {
+					this.log.error(err);
+					reject();
+				}
+				try {
+				
+
+				} catch (error) {
+					this.log.error(error);
+					reject();
+				}
+			});
+		});
+	}
+
+	getHomesStatus() {
+		return new Promise((resolve, reject) => {
+			this.log.debug("getHomesStatus");
+			request.post({
+				url: "",
+				headers: {
+				
+				},
+				json: true,
+				followAllRedirects: true
+			}, (err, resp, body) => {
+				if (err) {
+					this.log.error(err);
+					reject();
+				}
+				try {
+					
+					resolve();
+				} catch (error) {
+					this.log.error(error);
+					reject();
+				}
+			});
+		});
+	}
+
+	setWemState(body) {
+		return new Promise((resolve, reject) => {
+			request.post({
+				url: "",
+				headers: {
+				
+				},
+				body: body,
+				json: true,
+				followAllRedirects: true
+			}, (err, resp, body) => {
+				if (err) {
+					this.log.error(err);
+					reject();
+				}
+				try {
+					this.log.info(body);
+					resolve();
+
+				} catch (error) {
+					this.log.error(error);
+					reject();
+				}
+			});
+		});
+	}
 	/**
 	 * Is called when adapter shuts down - callback has to be called under any circumstances!
 	 * @param {() => void} callback
@@ -91,6 +214,9 @@ class WeishauptWem extends utils.Adapter {
 	onUnload(callback) {
 		try {
 			this.log.info("cleaned everything up...");
+
+			clearInterval(this.refreshTokenInterval);
+			clearInterval(this.updateInterval);
 			callback();
 		} catch (e) {
 			callback();
@@ -105,10 +231,10 @@ class WeishauptWem extends utils.Adapter {
 	onObjectChange(id, obj) {
 		if (obj) {
 			// The object was changed
-			this.log.info(`object ${id} changed: ${JSON.stringify(obj)}`);
+			//	this.log.info(`object ${id} changed: ${JSON.stringify(obj)}`);
 		} else {
 			// The object was deleted
-			this.log.info(`object ${id} deleted`);
+			//	this.log.info(`object ${id} deleted`);
 		}
 	}
 
@@ -120,29 +246,12 @@ class WeishauptWem extends utils.Adapter {
 	onStateChange(id, state) {
 		if (state) {
 			// The state was changed
-			this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
+			//	this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
 		} else {
 			// The state was deleted
-			this.log.info(`state ${id} deleted`);
+			//	this.log.info(`state ${id} deleted`);
 		}
 	}
-
-	// /**
-	//  * Some message was sent to this instance over message box. Used by email, pushover, text2speech, ...
-	//  * Using this method requires "common.message" property to be set to true in io-package.json
-	//  * @param {ioBroker.Message} obj
-	//  */
-	// onMessage(obj) {
-	// 	if (typeof obj === "object" && obj.message) {
-	// 		if (obj.command === "send") {
-	// 			// e.g. send email or pushover or whatever
-	// 			this.log.info("send command");
-
-	// 			// Send response in callback if required
-	// 			if (obj.callback) this.sendTo(obj.from, obj.command, "Message received", obj.callback);
-	// 		}
-	// 	}
-	// }
 
 }
 

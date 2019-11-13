@@ -68,8 +68,10 @@
 		]
 	},
 	"native": {
-		"option1": true,
-		"option2": "42"
+		"user": "",
+		"password": "",
+		"sessionid": "",
+		"interval": 15
 	},
 	"objects": [],
 	"instanceObjects": [
