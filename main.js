@@ -69,7 +69,7 @@ class WeishauptWem extends utils.Adapter {
 				headers: {
 					'Accept-Language': 'en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6',
 					'Accept-Encoding': 'gzip, deflate, br',
-					'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36',
+					'User-Agent': 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36',
 					"Accept": "*/*"
 				},
 				gzip: true,
@@ -98,7 +98,7 @@ class WeishauptWem extends utils.Adapter {
 						headers: {
 							'Accept-Language': 'en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6',
 							'Accept-Encoding': 'gzip, deflate, br',
-							'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36',
+							'User-Agent': 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36',
 							"Accept": "*/*",
 							"Content-Type": "application/x-www-form-urlencoded",
 						},
@@ -138,7 +138,7 @@ class WeishauptWem extends utils.Adapter {
 				headers: {
 					'Accept-Language': 'en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6',
 					'Accept-Encoding': 'gzip, deflate, br',
-					'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36',
+					'User-Agent': 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36',
 					"Accept": "*/*"
 				},
 				gzip: true,
@@ -167,7 +167,7 @@ class WeishauptWem extends utils.Adapter {
 						headers: {
 							'Accept-Language': 'en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6',
 							'Accept-Encoding': 'gzip, deflate, br',
-							'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36',
+							'User-Agent': 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36',
 							"Accept": "*/*",
 							"Content-Type": "application/x-www-form-urlencoded",
 						},
@@ -210,7 +210,7 @@ class WeishauptWem extends utils.Adapter {
 				headers: {
 					'Accept-Language': 'en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6',
 					'Accept-Encoding': 'gzip, deflate, br',
-					'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36',
+					'User-Agent': 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36',
 					"Accept": "*/*",
 
 				},
