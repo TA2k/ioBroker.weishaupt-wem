@@ -1,8 +1,11 @@
 {
   "common": {
     "name": "weishaupt-wem",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "news": {
+      "0.0.3": {
+        "en": "Parameterändern gefixt."
+      },
       "0.0.2": {
         "en": "Möglichkeit Parameter zu ändern, Nummerische Werte als Zahlen in ioBroker geschrieben"
       },

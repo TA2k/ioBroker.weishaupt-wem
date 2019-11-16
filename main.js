@@ -34,6 +34,7 @@ class WeishauptWem extends utils.Adapter {
 		this.jar = request.jar();
 		this.refreshTokenInterval = null;
 		this.updateInterval = null;
+		this.dataPointId = 0;
 
 	}
 
@@ -153,6 +154,11 @@ class WeishauptWem extends utils.Adapter {
 				}
 
 				try {
+
+					const dpStart = body.indexOf("DataPointId=") + 12;
+					const dpEnd = body.indexOf("&", dpStart);
+					this.dataPointId = parseInt(body.substring(dpStart, dpEnd));
+
 					const dom = new JSDOM(body);
 					let form = {};
 					for (const formElement of dom.window.document.querySelectorAll("input")) {
@@ -568,37 +574,41 @@ class WeishauptWem extends utils.Adapter {
 				if (id.indexOf("remote") !== -1) {
 					const action = id.split(".")[4];
 					if (action === "Systembetriebsart") {
-						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=23383&entityvalueid=208560&unit=&entitytype=VarChar&entityvalue=@@wh-597-EV-Repl-14-29&GroupId=54528&ElsterDataType=5&name=@@wh-597-ET-Name-14&OVIndex=9758&DataPointId=29258&rwndrnd=0.8080932382276982", state.val, 208557)
+						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=23383&entityvalueid=208560&unit=&entitytype=VarChar&entityvalue=@@wh-597-EV-Repl-14-29&GroupId=54528&ElsterDataType=5&name=@@wh-597-ET-Name-14&OVIndex=9758&DataPointId=" + this.dataPointId + "&rwndrnd=0.8080932382276982", state.val, 208557)
 					}
 					if (action === "Heizkreisbetriebsart") {
-						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=23751&entityvalueid=209322&unit=&entitytype=VarChar&entityvalue=@@wh-603-EV-Repl-7-351&GroupId=55012&ElsterDataType=64&name=@@wh-603-ET-Name-7&OVIndex=9523&DataPointId=29259&rwndrnd=0.7505293487695444", state.val, 209321)
+						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=23751&entityvalueid=209322&unit=&entitytype=VarChar&entityvalue=@@wh-603-EV-Repl-7-351&GroupId=55012&ElsterDataType=64&name=@@wh-603-ET-Name-7&OVIndex=9523&DataPointId=" + (this.dataPointId + 1) + "&rwndrnd=0.7505293487695444", state.val, 209321)
 					}
 					if (action === "RaumKomfortTemp") {
-						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=23764&entityvalueid=209347&unit=@@wh-Unit-1&entitytype=Float&entityvalue=25&GroupId=55018&ElsterDataType=68&name=@@wh-603-ET-Name-14&OVIndex=9531&DataPointId=29259&rwndrnd=0.5645296482835123", state.val)
+						const currentId =  
+						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=23764&entityvalueid=209347&unit=@@wh-Unit-1&entitytype=Float&entityvalue=25&GroupId=55018&ElsterDataType=68&name=@@wh-603-ET-Name-14&OVIndex=9531&DataPointId=" + (this.dataPointId + 1) + "&rwndrnd=0.5645296482835123", state.val)
 					}
 					if (action === "RaumNormalTemp") {
-						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=23765&entityvalueid=209348&unit=@@wh-Unit-1&entitytype=Float&entityvalue=21&GroupId=55018&ElsterDataType=68&name=@@wh-603-ET-Name-13&OVIndex=9530&DataPointId=29259&rwndrnd=0.6349659495670719", state.val)
+						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=23765&entityvalueid=209348&unit=@@wh-Unit-1&entitytype=Float&entityvalue=21&GroupId=55018&ElsterDataType=68&name=@@wh-603-ET-Name-13&OVIndex=9530&DataPointId=" + (this.dataPointId + 1) + "&rwndrnd=0.6349659495670719", state.val)
 					}
 					if (action === "RaumAbsenkTemp") {
-						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=23766&entityvalueid=209349&unit=@@wh-Unit-1&entitytype=Float&entityvalue=17&GroupId=55018&ElsterDataType=68&name=@@wh-603-ET-Name-12&OVIndex=9529&DataPointId=29259&rwndrnd=0.19101872272453302", state.val)
+						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=23766&entityvalueid=209349&unit=@@wh-Unit-1&entitytype=Float&entityvalue=17&GroupId=55018&ElsterDataType=68&name=@@wh-603-ET-Name-12&OVIndex=9529&DataPointId=" + (this.dataPointId + 1) + "&rwndrnd=0.19101872272453302", state.val)
 					}
 					if (action === "WWSollNormal") {
-						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=22686&entityvalueid=207552&unit=@@wh-Unit-1&entitytype=Float&entityvalue=50&GroupId=53494&ElsterDataType=68&name=@@wh-582-ET-Name-5&OVIndex=9529&DataPointId=29260&rwndrnd=0.6669689557062952", state.val)
+						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=22686&entityvalueid=207552&unit=@@wh-Unit-1&entitytype=Float&entityvalue=50&GroupId=53494&ElsterDataType=68&name=@@wh-582-ET-Name-5&OVIndex=9529&DataPointId=" + (this.dataPointId + 2) + "&rwndrnd=0.6669689557062952", state.val)
 					}
 					if (action === "WWSollAbsenk") {
-						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=22687&entityvalueid=207553&unit=@@wh-Unit-1&entitytype=Float&entityvalue=40&GroupId=53494&ElsterDataType=68&name=@@wh-582-ET-Name-6&OVIndex=9528&DataPointId=29260&rwndrnd=0.9772733556889273", state.val)
+						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=22687&entityvalueid=207553&unit=@@wh-Unit-1&entitytype=Float&entityvalue=40&GroupId=53494&ElsterDataType=68&name=@@wh-582-ET-Name-6&OVIndex=9528&DataPointId=" + (this.dataPointId + 2) + "&rwndrnd=0.9772733556889273", state.val)
 					}
 					if (action === "WWPush") {
-						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=22688&entityvalueid=207554&unit=&entitytype=Int&entityvalue=0&GroupId=53496&ElsterDataType=64&name=@@wh-582-ET-Name-8&OVIndex=9545&DataPointId=29260&rwndrnd=0.5910648822562681", state.val)
+						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=22688&entityvalueid=207554&unit=&entitytype=Int&entityvalue=0&GroupId=53496&ElsterDataType=64&name=@@wh-582-ET-Name-8&OVIndex=9545&DataPointId=" + (this.dataPointId + 2) + "&rwndrnd=0.5910648822562681", state.val)
 					}
 					if (action === "Pumpebetriebsart") {
-						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=24723&entityvalueid=210505&unit=&entitytype=VarChar&entityvalue=@@wh-613-EV-Repl-53-650&GroupId=55351&ElsterDataType=64&name=@@wh-613-ET-Name-53&OVIndex=9834&DataPointId=66072&rwndrnd=0.3333835266610612", state.val, 210496)
+						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=24723&entityvalueid=210505&unit=&entitytype=VarChar&entityvalue=@@wh-613-EV-Repl-53-650&GroupId=55351&ElsterDataType=64&name=@@wh-613-ET-Name-53&OVIndex=9834&DataPointId=" + (this.dataPointId + 5) + "&rwndrnd=0.3333835266610612", state.val, 210496)
 					}
 					if (action === "CustomBefehl") {
 						try {
-							
-						const pArray = state.val.replace(/ /g, '').split(",");
-						this.switchState(pArray[0], pArray[1])
+
+							const pArray = state.val.replace(/ /g, '').split(",");
+							if (isNaN(pArray[1])) {
+								this.log.debug(pArray[1] + " is  not a number");
+							}
+							this.switchState(pArray[0], parseFloat(pArray[1]))
 						} catch (error) {
 							this.log.error("No valid custom befehl. Example: ")
 							this.log.error('https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=22686&entityvalue...., 52');

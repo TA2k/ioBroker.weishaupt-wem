@@ -23,14 +23,21 @@ z.B.: https://www.wemportal.com/Web/UControls..., 208557
 
 ## Changelog
 
+### 0.0.3
+
+* (ta2k) Fix remote control
+
 ### 0.0.2
+
 * (ta2k) Möglichkeit Parameter zu ändern
 * Nummerische Werte als Zahlen in ioBroker geschrieben
 
 ### 0.0.1
+
 * (ta2k) initial release
 
 ## License
+
 MIT License
 
 Copyright (c) 2019 ta2k <tombox2020@gmail.com>
