@@ -14,7 +14,18 @@
 
 Adapter for weishaupt WEM Portal
 
+## Custom Befehl
+
+Für ein Custom Befehl benötigst du die URL und den gewünschten Wert.
+Für die URL einfach die Option im WEM Portal mit Chrome aufrufen und dann rechte Maustate Untersuchen dann unter Elements/Elemente mit STRG+F nach iframe suchen mit dem name="RDWWriteParameter" die URL nach src mit rechts Klick Link kopieren raus kopieren.
+Für den Werte nach option suchen und den gewünschten Wert unter value kopieren und als state Wert eintragen.
+z.B.: https://www.wemportal.com/Web/UControls..., 208557
+
 ## Changelog
+
+### 0.0.2
+* (ta2k) Möglichkeit Parameter zu ändern
+* Nummerische Werte als Zahlen in ioBroker geschrieben
 
 ### 0.0.1
 * (ta2k) initial release

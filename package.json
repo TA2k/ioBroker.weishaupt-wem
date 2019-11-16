@@ -1,27 +1,66 @@
 {
-  "name": "iobroker.weishaupt-wem",
-  "version": "0.0.1",
-  "description": "Adapter for weishaupt WEM Portal",
+  "_from": "https://github.com/TA2k/ioBroker.weishaupt-wem/tarball/b9f0d8985bdcc9e92b3fb8d73cb401af1a8ecccc",
+  "_id": "iobroker.weishaupt-wem@0.0.1",
+  "_inBundle": false,
+  "_integrity": "sha512-babCjxanLnXRRSCyhrIfIzllY2l0AAzGcZGvWhAsNOC0F+FGKMkhpA8fE+0YXGaEPWih/r6mBm9Xp/SKPUnuoQ==",
+  "_location": "/iobroker.weishaupt-wem",
+  "_phantomChildren": {
+    "abab": "2.0.2",
+    "acorn-globals": "4.3.4",
+    "array-equal": "1.0.0",
+    "async-limiter": "1.0.1",
+    "data-urls": "1.1.0",
+    "domexception": "1.0.1",
+    "esutils": "2.0.3",
+    "html-encoding-sniffer": "1.0.2",
+    "ip-regex": "2.1.0",
+    "optionator": "0.8.2",
+    "parse5": "5.1.0",
+    "pn": "1.1.0",
+    "psl": "1.4.0",
+    "punycode": "2.1.1",
+    "request": "2.88.0",
+    "request-promise-native": "1.0.7",
+    "saxes": "3.1.11",
+    "symbol-tree": "3.2.4",
+    "w3c-hr-time": "1.0.1",
+    "w3c-xmlserializer": "1.1.2",
+    "webidl-conversions": "4.0.2",
+    "whatwg-encoding": "1.0.5",
+    "whatwg-mimetype": "2.3.0",
+    "whatwg-url": "7.0.0",
+    "xml-name-validator": "3.0.0"
+  },
+  "_requested": {
+    "type": "remote",
+    "raw": "https://github.com/TA2k/ioBroker.weishaupt-wem/tarball/b9f0d8985bdcc9e92b3fb8d73cb401af1a8ecccc",
+    "rawSpec": "https://github.com/TA2k/ioBroker.weishaupt-wem/tarball/b9f0d8985bdcc9e92b3fb8d73cb401af1a8ecccc",
+    "saveSpec": "https://github.com/TA2k/ioBroker.weishaupt-wem/tarball/b9f0d8985bdcc9e92b3fb8d73cb401af1a8ecccc",
+    "fetchSpec": "https://github.com/TA2k/ioBroker.weishaupt-wem/tarball/b9f0d8985bdcc9e92b3fb8d73cb401af1a8ecccc"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://github.com/TA2k/ioBroker.weishaupt-wem/tarball/b9f0d8985bdcc9e92b3fb8d73cb401af1a8ecccc",
+  "_shasum": "70b19bf70c8d862f6edbb0908f1b73c2009997de",
+  "_spec": "https://github.com/TA2k/ioBroker.weishaupt-wem/tarball/b9f0d8985bdcc9e92b3fb8d73cb401af1a8ecccc",
+  "_where": "/usr/local/iobroker/node_modules/iobroker.js-controller",
   "author": {
     "name": "ta2k",
     "email": "tombox2020@gmail.com"
   },
-  "homepage": "https://github.com/ta2k/ioBroker.weishaupt-wem",
-  "license": "MIT",
-  "keywords": [
-    "weishaupt",
-    "WEM",
-    "WEM Portal"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/ta2k/ioBroker.weishaupt-wem"
+  "bugs": {
+    "url": "https://github.com/ta2k/ioBroker.weishaupt-wem/issues"
   },
+  "bundleDependencies": false,
   "dependencies": {
     "@iobroker/adapter-core": "^1.0.3",
     "jsdom": "^15.2.1",
     "request": "^2.88.0"
   },
+  "deprecated": false,
+  "description": "Adapter for weishaupt WEM Portal",
   "devDependencies": {
     "@iobroker/testing": "^1.3.0",
     "@types/chai": "^4.2.5",
@@ -42,17 +81,26 @@
     "sinon": "^7.5.0",
     "sinon-chai": "^3.3.0"
   },
+  "homepage": "https://github.com/ta2k/ioBroker.weishaupt-wem",
+  "keywords": [
+    "weishaupt",
+    "WEM",
+    "WEM Portal"
+  ],
+  "license": "MIT",
   "main": "main.js",
+  "name": "iobroker.weishaupt-wem",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ta2k/ioBroker.weishaupt-wem.git"
+  },
   "scripts": {
+    "lint": "eslint",
+    "test": "npm run test:js && npm run test:package",
+    "test:integration": "mocha test/integration --exit",
     "test:js": "mocha --opts test/mocha.custom.opts",
     "test:package": "mocha test/package --exit",
-    "test:unit": "mocha test/unit --exit",
-    "test:integration": "mocha test/integration --exit",
-    "test": "npm run test:js && npm run test:package",
-    "lint": "eslint"
+    "test:unit": "mocha test/unit --exit"
   },
-  "bugs": {
-    "url": "https://github.com/ta2k/ioBroker.weishaupt-wem/issues"
-  },
-  "readmeFilename": "README.md"
+  "version": "0.0.2"
 }

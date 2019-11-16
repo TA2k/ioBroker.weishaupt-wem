@@ -1,100 +1,104 @@
 {
-	"common": {
-		"name": "weishaupt-wem",
-		"version": "0.0.1",
-		"news": {
-			"0.0.1": {
-				"en": "initial release",
-				"de": "Erstveröffentlichung",
-				"ru": "Начальная версия",
-				"pt": "lançamento inicial",
-				"nl": "Eerste uitgave",
-				"fr": "Première version",
-				"it": "Versione iniziale",
-				"es": "Versión inicial",
-				"pl": "Pierwsze wydanie",
-				"zh-cn": "首次出版"
-			}
-		},
-		"title": "weishaupt WEM Portal",
-		"titleLang": {
-			"en": "weishaupt WEM Portal",
-			"de": "weishaupt WEM Portal",
-			"ru": "weishaupt WEM Portal",
-			"pt": "Portal do MAE",
-			"nl": "weishaupt WEM-portal",
-			"fr": "weishaupt WEM Portal",
-			"it": "weishaupt WEM Portal",
-			"es": "weishaupt WEM Portal",
-			"pl": "weishaupt Portal WEM",
-			"zh-cn": "weishaupt WEM门户"
-		},
-		"desc": {
-			"en": "Adapter for weishaupt WEM Portal",
-			"de": "Adapter für das weishaupt WEM Portal",
-			"ru": "Адаптер для Weishaupt WEM Portal",
-			"pt": "Adaptador para weishaupt WEM Portal",
-			"nl": "Adapter voor weishaupt WEM Portal",
-			"fr": "Adaptateur pour le portail weishaupt WEM",
-			"it": "Adattatore per portale WEM weishaupt",
-			"es": "Adaptador para weishaupt WEM Portal",
-			"pl": "Adapter do weishaupt WEM Portal",
-			"zh-cn": "weishaupt WEM门户适配器"
-		},
-		"authors": [
-			"ta2k <tombox2020@gmail.com>"
-		],
-		"keywords": [
-			"weishaupt",
-			"WEM",
-			"WEM Portal"
-		],
-		"license": "MIT",
-		"platform": "Javascript/Node.js",
-		"main": "main.js",
-		"icon": "weishaupt-wem.png",
-		"enabled": true,
-		"extIcon": "https://raw.githubusercontent.com/ta2k/ioBroker.weishaupt-wem/master/admin/weishaupt-wem.png",
-		"readme": "https://github.com/ta2k/ioBroker.weishaupt-wem/blob/master/README.md",
-		"loglevel": "info",
-		"mode": "daemon",
-		"type": "household",
-		"compact": true,
-		"materialize": true,
-		"dependencies": [
-			{
-				"js-controller": ">=1.4.2"
-			}
-		]
-	},
-	"native": {
-		"user": "",
-		"password": "",
-		"sessionid": "",
-		"interval": 15
-	},
-	"objects": [],
-	"instanceObjects": [
-		{
-			"_id": "info",
-			"type": "channel",
-			"common": {
-				"name": "Information"
-			},
-			"native": {}
-		},
-		{
-			"_id": "info.connection",
-			"type": "state",
-			"common": {
-				"role": "indicator.connected",
-				"name": "Device or service connected",
-				"type": "boolean",
-				"read": true,
-				"write": false,
-				"def": false
-			},
-			"native": {}
-		}
-	]
+  "common": {
+    "name": "weishaupt-wem",
+    "version": "0.0.2",
+    "news": {
+      "0.0.2": {
+        "en": "Möglichkeit Parameter zu ändern, Nummerische Werte als Zahlen in ioBroker geschrieben"
+      },
+      "0.0.1": {
+        "en": "initial release",
+        "de": "Erstveröffentlichung",
+        "ru": "Начальная версия",
+        "pt": "lançamento inicial",
+        "nl": "Eerste uitgave",
+        "fr": "Première version",
+        "it": "Versione iniziale",
+        "es": "Versión inicial",
+        "pl": "Pierwsze wydanie",
+        "zh-cn": "首次出版"
+      }
+    },
+    "title": "weishaupt WEM Portal",
+    "titleLang": {
+      "en": "weishaupt WEM Portal",
+      "de": "weishaupt WEM Portal",
+      "ru": "weishaupt WEM Portal",
+      "pt": "Portal do MAE",
+      "nl": "weishaupt WEM-portal",
+      "fr": "weishaupt WEM Portal",
+      "it": "weishaupt WEM Portal",
+      "es": "weishaupt WEM Portal",
+      "pl": "weishaupt Portal WEM",
+      "zh-cn": "weishaupt WEM门户"
+    },
+    "desc": {
+      "en": "Adapter for weishaupt WEM Portal",
+      "de": "Adapter für das weishaupt WEM Portal",
+      "ru": "Адаптер для Weishaupt WEM Portal",
+      "pt": "Adaptador para weishaupt WEM Portal",
+      "nl": "Adapter voor weishaupt WEM Portal",
+      "fr": "Adaptateur pour le portail weishaupt WEM",
+      "it": "Adattatore per portale WEM weishaupt",
+      "es": "Adaptador para weishaupt WEM Portal",
+      "pl": "Adapter do weishaupt WEM Portal",
+      "zh-cn": "weishaupt WEM门户适配器"
+    },
+    "authors": [
+      "ta2k <tombox2020@gmail.com>"
+    ],
+    "keywords": [
+      "weishaupt",
+      "WEM",
+      "WEM Portal"
+    ],
+    "license": "MIT",
+    "platform": "Javascript/Node.js",
+    "main": "main.js",
+    "icon": "weishaupt-wem.png",
+    "enabled": true,
+    "extIcon": "https://raw.githubusercontent.com/ta2k/ioBroker.weishaupt-wem/master/admin/weishaupt-wem.png",
+    "readme": "https://github.com/ta2k/ioBroker.weishaupt-wem/blob/master/README.md",
+    "loglevel": "info",
+    "mode": "daemon",
+    "type": "household",
+    "compact": true,
+    "materialize": true,
+    "dependencies": [
+      {
+        "js-controller": ">=1.4.2"
+      }
+    ],
+    "installedFrom": "https://github.com/TA2k/ioBroker.weishaupt-wem/tarball/b9f0d8985bdcc9e92b3fb8d73cb401af1a8ecccc"
+  },
+  "native": {
+    "user": "",
+    "password": "",
+    "sessionid": "",
+    "interval": 15
+  },
+  "objects": [],
+  "instanceObjects": [
+    {
+      "_id": "info",
+      "type": "channel",
+      "common": {
+        "name": "Information"
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.connection",
+      "type": "state",
+      "common": {
+        "role": "indicator.connected",
+        "name": "Device or service connected",
+        "type": "boolean",
+        "read": true,
+        "write": false,
+        "def": false
+      },
+      "native": {}
+    }
+  ]
 }
