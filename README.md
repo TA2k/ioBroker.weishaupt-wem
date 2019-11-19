@@ -23,6 +23,10 @@ z.B.: https://www.wemportal.com/Web/UControls..., 208557
 
 ## Changelog
 
+### 0.0.4
+
+* (ta2k) remove spaces in ids
+
 ### 0.0.3
 
 * (ta2k) Fix remote control

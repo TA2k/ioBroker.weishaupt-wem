@@ -466,8 +466,9 @@ class WeishauptWem extends utils.Adapter {
 					for (const dataCell of dom.window.document.querySelectorAll(".simpleDataIconCell")) {
 						if (dataCell.nextSibling) {
 							const label = dataCell.nextElementSibling.textContent.trim().replace(/\./g, "");
+							const labelWoSpaces = label.replace(/ /g, "");
 							let value = dataCell.nextElementSibling.nextElementSibling.textContent.trim()
-							this.setObjectNotExists(deviceInfo + "." + label, {
+							this.setObjectNotExists(deviceInfo + "." + labelWoSpaces, {
 								type: "state",
 								common: {
 									name: label,
@@ -483,7 +484,7 @@ class WeishauptWem extends utils.Adapter {
 							if (!isNaN(valueArray[0])) {
 								value = parseFloat(valueArray[0])
 							}
-							this.setState(deviceInfo + "." + label, value, true);
+							this.setState(deviceInfo + "." + labelWoSpaces, value, true);
 
 						}
 					}

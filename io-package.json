@@ -1,8 +1,11 @@
 {
   "common": {
     "name": "weishaupt-wem",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "news": {
+      "0.0.4": {
+        "en": "Leerzeichen in den IDs entfernt."
+      },
       "0.0.3": {
         "en": "Parameterändern gefixt."
       },
