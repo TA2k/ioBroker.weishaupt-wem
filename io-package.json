@@ -1,8 +1,11 @@
 {
   "common": {
     "name": "weishaupt-wem",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "news": {
+      "0.0.5": {
+        "en": "fix remote für WWP."
+      },
       "0.0.4": {
         "en": "Leerzeichen in den IDs entfernt."
       },
@@ -74,8 +77,7 @@
       {
         "js-controller": ">=1.4.2"
       }
-    ],
-    "installedFrom": "https://github.com/TA2k/ioBroker.weishaupt-wem/tarball/b9f0d8985bdcc9e92b3fb8d73cb401af1a8ecccc"
+    ]
   },
   "native": {
     "user": "",

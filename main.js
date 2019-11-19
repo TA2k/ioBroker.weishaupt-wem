@@ -25,7 +25,6 @@ class WeishauptWem extends utils.Adapter {
 			name: "weishaupt-wem",
 		});
 		this.on("ready", this.onReady.bind(this));
-		this.on("objectChange", this.onObjectChange.bind(this));
 		this.on("stateChange", this.onStateChange.bind(this));
 		// this.on("message", this.onMessage.bind(this));
 		this.on("unload", this.onUnload.bind(this));
@@ -79,7 +78,7 @@ class WeishauptWem extends utils.Adapter {
 				jar: this.jar,
 				followAllRedirects: true
 			}, (err, resp, body) => {
-				if (err) {
+				if (err || resp.statusCode >= 400 || !body) {
 					this.log.error(err);
 					reject();
 				}
@@ -89,7 +88,6 @@ class WeishauptWem extends utils.Adapter {
 					let form = {};
 					for (const formElement of dom.window.document.querySelectorAll("input")) {
 						if (formElement.type === "hidden") {
-							//form += formElement.name + "=" + formElement.value + "&";
 							form[formElement.name] = formElement.value;
 						}
 					}
@@ -110,7 +108,7 @@ class WeishauptWem extends utils.Adapter {
 						jar: this.jar,
 						followAllRedirects: false,
 					}, (err, resp, body) => {
-						if (err) {
+						if (err || resp.statusCode >= 400 || !body) {
 							this.log.error(err);
 							reject();
 						} else {
@@ -148,7 +146,7 @@ class WeishauptWem extends utils.Adapter {
 				jar: this.jar,
 				followAllRedirects: true
 			}, (err, resp, body) => {
-				if (err) {
+				if (err || resp.statusCode >= 400 || !body) {
 					this.log.error(err);
 					reject();
 				}
@@ -158,7 +156,9 @@ class WeishauptWem extends utils.Adapter {
 					const dpStart = body.indexOf("DataPointId=") + 12;
 					const dpEnd = body.indexOf("&", dpStart);
 					this.dataPointId = parseInt(body.substring(dpStart, dpEnd));
-
+					if (isNaN(this.dataPointId)) {
+						this.log.info("No dataPointid found maybe remote command are not working use customBefehl")
+					}
 					const dom = new JSDOM(body);
 					let form = {};
 					for (const formElement of dom.window.document.querySelectorAll("input")) {
@@ -184,7 +184,7 @@ class WeishauptWem extends utils.Adapter {
 						jar: this.jar,
 						followAllRedirects: false,
 					}, (err, resp, body) => {
-						if (err) {
+						if (err || resp.statusCode >= 400 || !body) {
 							this.log.error(err);
 							reject();
 						} else {
@@ -224,7 +224,7 @@ class WeishauptWem extends utils.Adapter {
 				jar: this.jar,
 				followAllRedirects: true
 			}, (err, resp, body) => {
-				if (err) {
+				if (err || resp.statusCode >= 400 || !body) {
 					this.log.error(err);
 					reject();
 				}
@@ -263,7 +263,7 @@ class WeishauptWem extends utils.Adapter {
 						jar: this.jar,
 						followAllRedirects: false,
 					}, (err, resp, body) => {
-						if (err) {
+						if (err || resp.statusCode >= 400 || !body) {
 							this.log.error(err);
 							reject();
 						} else {
@@ -303,7 +303,7 @@ class WeishauptWem extends utils.Adapter {
 				followAllRedirects: true,
 
 			}, (err, resp, body) => {
-				if (err) {
+				if (err || resp.statusCode >= 400 || !body) {
 					this.log.error(err);
 					reject();
 				}
@@ -506,32 +506,6 @@ class WeishauptWem extends utils.Adapter {
 		});
 	}
 
-	setWemState(body) {
-		return new Promise((resolve, reject) => {
-			request.post({
-				url: "",
-				headers: {
-
-				},
-				body: body,
-				json: true,
-				followAllRedirects: true
-			}, (err, resp, body) => {
-				if (err) {
-					this.log.error(err);
-					reject();
-				}
-				try {
-					this.log.info(body);
-					resolve();
-
-				} catch (error) {
-					this.log.error(error);
-					reject();
-				}
-			});
-		});
-	}
 	/**
 	 * Is called when adapter shuts down - callback has to be called under any circumstances!
 	 * @param {() => void} callback
@@ -549,21 +523,6 @@ class WeishauptWem extends utils.Adapter {
 	}
 
 	/**
-	 * Is called if a subscribed object changes
-	 * @param {string} id
-	 * @param {ioBroker.Object | null | undefined} obj
-	 */
-	onObjectChange(id, obj) {
-		if (obj) {
-			// The object was changed
-			//	this.log.info(`object ${id} changed: ${JSON.stringify(obj)}`);
-		} else {
-			// The object was deleted
-			//	this.log.info(`object ${id} deleted`);
-		}
-	}
-
-	/**
 	 * Is called if a subscribed state changes
 	 * @param {string} id
 	 * @param {ioBroker.State | null | undefined} state
@@ -575,32 +534,75 @@ class WeishauptWem extends utils.Adapter {
 				if (id.indexOf("remote") !== -1) {
 					const action = id.split(".")[4];
 					if (action === "Systembetriebsart") {
-						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=23383&entityvalueid=208560&unit=&entitytype=VarChar&entityvalue=@@wh-597-EV-Repl-14-29&GroupId=54528&ElsterDataType=5&name=@@wh-597-ET-Name-14&OVIndex=9758&DataPointId=" + this.dataPointId + "&rwndrnd=0.8080932382276982", state.val, 208557)
+						if (isNaN(this.dataPointId)) {
+							this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/WwpsParameterDetails.aspx?entityvalue=0600000000000000008000b9ef0100110003&readdata=False&rwndrnd=0.20391030307588598", state.val)
+
+						} else {
+							this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=23383&entityvalueid=208560&unit=&entitytype=VarChar&entityvalue=@@wh-597-EV-Repl-14-29&GroupId=54528&ElsterDataType=5&name=@@wh-597-ET-Name-14&OVIndex=9758&DataPointId=" + this.dataPointId + "&rwndrnd=0.8080932382276982", state.val, 208557)
+						}
 					}
 					if (action === "Heizkreisbetriebsart") {
-						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=23751&entityvalueid=209322&unit=&entitytype=VarChar&entityvalue=@@wh-603-EV-Repl-7-351&GroupId=55012&ElsterDataType=64&name=@@wh-603-ET-Name-7&OVIndex=9523&DataPointId=" + (this.dataPointId + 1) + "&rwndrnd=0.7505293487695444", state.val, 209321)
+						if (isNaN(this.dataPointId)) {
+							this.log.info("Option is not available")
+						} else {
+							this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=23751&entityvalueid=209322&unit=&entitytype=VarChar&entityvalue=@@wh-603-EV-Repl-7-351&GroupId=55012&ElsterDataType=64&name=@@wh-603-ET-Name-7&OVIndex=9523&DataPointId=" + (this.dataPointId + 1) + "&rwndrnd=0.7505293487695444", state.val, 209321)
+						}
 					}
 					if (action === "RaumKomfortTemp") {
-						const currentId =  
-						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=23764&entityvalueid=209347&unit=@@wh-Unit-1&entitytype=Float&entityvalue=25&GroupId=55018&ElsterDataType=68&name=@@wh-603-ET-Name-14&OVIndex=9531&DataPointId=" + (this.dataPointId + 1) + "&rwndrnd=0.5645296482835123", state.val)
+						if (isNaN(this.dataPointId)) {
+							this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/WwpsParameterDetails.aspx?entityvalue=320019010000CD00D24000B9EF0300110104&readdata=True&rwndrnd=0.7551314485659901", state.val * 10)
+
+						} else {
+							this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=23764&entityvalueid=209347&unit=@@wh-Unit-1&entitytype=Float&entityvalue=25&GroupId=55018&ElsterDataType=68&name=@@wh-603-ET-Name-14&OVIndex=9531&DataPointId=" + (this.dataPointId + 1) + "&rwndrnd=0.5645296482835123", state.val)
+						}
 					}
 					if (action === "RaumNormalTemp") {
-						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=23765&entityvalueid=209348&unit=@@wh-Unit-1&entitytype=Float&entityvalue=21&GroupId=55018&ElsterDataType=68&name=@@wh-603-ET-Name-13&OVIndex=9530&DataPointId=" + (this.dataPointId + 1) + "&rwndrnd=0.6349659495670719", state.val)
+						if (isNaN(this.dataPointId)) {
+							this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/WwpsParameterDetails.aspx?entityvalue=3200190200011800D24000B9EF0300110104&readdata=True&rwndrnd=0.8885759157701352", state.val * 10)
+
+						} else {
+							this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=23765&entityvalueid=209348&unit=@@wh-Unit-1&entitytype=Float&entityvalue=21&GroupId=55018&ElsterDataType=68&name=@@wh-603-ET-Name-13&OVIndex=9530&DataPointId=" + (this.dataPointId + 1) + "&rwndrnd=0.6349659495670719", state.val)
+						}
 					}
+
 					if (action === "RaumAbsenkTemp") {
-						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=23766&entityvalueid=209349&unit=@@wh-Unit-1&entitytype=Float&entityvalue=17&GroupId=55018&ElsterDataType=68&name=@@wh-603-ET-Name-12&OVIndex=9529&DataPointId=" + (this.dataPointId + 1) + "&rwndrnd=0.19101872272453302", state.val)
+						if (isNaN(this.dataPointId)) {
+							this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/WwpsParameterDetails.aspx?entityvalue=320019030000A000CD4000B9EF0300110104&readdata=True&rwndrnd=0.33021604398910664", state.val * 10)
+
+						} else {
+							this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=23766&entityvalueid=209349&unit=@@wh-Unit-1&entitytype=Float&entityvalue=17&GroupId=55018&ElsterDataType=68&name=@@wh-603-ET-Name-12&OVIndex=9529&DataPointId=" + (this.dataPointId + 1) + "&rwndrnd=0.19101872272453302", state.val)
+						}
 					}
 					if (action === "WWSollNormal") {
-						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=22686&entityvalueid=207552&unit=@@wh-Unit-1&entitytype=Float&entityvalue=50&GroupId=53494&ElsterDataType=68&name=@@wh-582-ET-Name-5&OVIndex=9529&DataPointId=" + (this.dataPointId + 2) + "&rwndrnd=0.6669689557062952", state.val)
+						if (isNaN(this.dataPointId)) {
+							this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/WwpsParameterDetails.aspx?entityvalue=46004201000037003C4000B9EF0300110104&readdata=True&rwndrnd=0.2514459684152772", state.val * 10)
+
+						} else {
+							this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=22686&entityvalueid=207552&unit=@@wh-Unit-1&entitytype=Float&entityvalue=50&GroupId=53494&ElsterDataType=68&name=@@wh-582-ET-Name-5&OVIndex=9529&DataPointId=" + (this.dataPointId + 2) + "&rwndrnd=0.6669689557062952", state.val)
+						}
 					}
 					if (action === "WWSollAbsenk") {
-						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=22687&entityvalueid=207553&unit=@@wh-Unit-1&entitytype=Float&entityvalue=40&GroupId=53494&ElsterDataType=68&name=@@wh-582-ET-Name-6&OVIndex=9528&DataPointId=" + (this.dataPointId + 2) + "&rwndrnd=0.9772733556889273", state.val)
+						if (isNaN(this.dataPointId)) {
+							this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/WwpsParameterDetails.aspx?entityvalue=4600420200003200374000B9EF0300110104&readdata=True&rwndrnd=0.8895149497674137", state.val * 10)
+
+						} else {
+							this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=22687&entityvalueid=207553&unit=@@wh-Unit-1&entitytype=Float&entityvalue=40&GroupId=53494&ElsterDataType=68&name=@@wh-582-ET-Name-6&OVIndex=9528&DataPointId=" + (this.dataPointId + 2) + "&rwndrnd=0.9772733556889273", state.val)
+						}
 					}
 					if (action === "WWPush") {
-						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=22688&entityvalueid=207554&unit=&entitytype=Int&entityvalue=0&GroupId=53496&ElsterDataType=64&name=@@wh-582-ET-Name-8&OVIndex=9545&DataPointId=" + (this.dataPointId + 2) + "&rwndrnd=0.5910648822562681", state.val)
+						if (isNaN(this.dataPointId)) {
+							this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/WwpsParameterDetails.aspx?entityvalue=4600410000000000008000B9EF0200110004&readdata=False&rwndrnd=0.514766269441187", state.val)
+
+						} else {
+							this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=22688&entityvalueid=207554&unit=&entitytype=Int&entityvalue=0&GroupId=53496&ElsterDataType=64&name=@@wh-582-ET-Name-8&OVIndex=9545&DataPointId=" + (this.dataPointId + 2) + "&rwndrnd=0.5910648822562681", state.val)
+						}
 					}
 					if (action === "Pumpebetriebsart") {
-						this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=24723&entityvalueid=210505&unit=&entitytype=VarChar&entityvalue=@@wh-613-EV-Repl-53-650&GroupId=55351&ElsterDataType=64&name=@@wh-613-ET-Name-53&OVIndex=9834&DataPointId=" + (this.dataPointId + 5) + "&rwndrnd=0.3333835266610612", state.val, 210496)
+						if (isNaN(this.dataPointId)) {
+							this.log.info("Option is not available")
+						} else {
+							this.switchState("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=24723&entityvalueid=210505&unit=&entitytype=VarChar&entityvalue=@@wh-613-EV-Repl-53-650&GroupId=55351&ElsterDataType=64&name=@@wh-613-ET-Name-53&OVIndex=9834&DataPointId=" + (this.dataPointId + 5) + "&rwndrnd=0.3333835266610612", state.val, 210496)
+						}
 					}
 					if (action === "CustomBefehl") {
 						try {

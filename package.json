@@ -1,51 +1,4 @@
 {
-  "_from": "https://github.com/TA2k/ioBroker.weishaupt-wem/tarball/b9f0d8985bdcc9e92b3fb8d73cb401af1a8ecccc",
-  "_id": "iobroker.weishaupt-wem@0.0.1",
-  "_inBundle": false,
-  "_integrity": "sha512-babCjxanLnXRRSCyhrIfIzllY2l0AAzGcZGvWhAsNOC0F+FGKMkhpA8fE+0YXGaEPWih/r6mBm9Xp/SKPUnuoQ==",
-  "_location": "/iobroker.weishaupt-wem",
-  "_phantomChildren": {
-    "abab": "2.0.2",
-    "acorn-globals": "4.3.4",
-    "array-equal": "1.0.0",
-    "async-limiter": "1.0.1",
-    "data-urls": "1.1.0",
-    "domexception": "1.0.1",
-    "esutils": "2.0.3",
-    "html-encoding-sniffer": "1.0.2",
-    "ip-regex": "2.1.0",
-    "optionator": "0.8.2",
-    "parse5": "5.1.0",
-    "pn": "1.1.0",
-    "psl": "1.4.0",
-    "punycode": "2.1.1",
-    "request": "2.88.0",
-    "request-promise-native": "1.0.7",
-    "saxes": "3.1.11",
-    "symbol-tree": "3.2.4",
-    "w3c-hr-time": "1.0.1",
-    "w3c-xmlserializer": "1.1.2",
-    "webidl-conversions": "4.0.2",
-    "whatwg-encoding": "1.0.5",
-    "whatwg-mimetype": "2.3.0",
-    "whatwg-url": "7.0.0",
-    "xml-name-validator": "3.0.0"
-  },
-  "_requested": {
-    "type": "remote",
-    "raw": "https://github.com/TA2k/ioBroker.weishaupt-wem/tarball/b9f0d8985bdcc9e92b3fb8d73cb401af1a8ecccc",
-    "rawSpec": "https://github.com/TA2k/ioBroker.weishaupt-wem/tarball/b9f0d8985bdcc9e92b3fb8d73cb401af1a8ecccc",
-    "saveSpec": "https://github.com/TA2k/ioBroker.weishaupt-wem/tarball/b9f0d8985bdcc9e92b3fb8d73cb401af1a8ecccc",
-    "fetchSpec": "https://github.com/TA2k/ioBroker.weishaupt-wem/tarball/b9f0d8985bdcc9e92b3fb8d73cb401af1a8ecccc"
-  },
-  "_requiredBy": [
-    "#USER",
-    "/"
-  ],
-  "_resolved": "https://github.com/TA2k/ioBroker.weishaupt-wem/tarball/b9f0d8985bdcc9e92b3fb8d73cb401af1a8ecccc",
-  "_shasum": "70b19bf70c8d862f6edbb0908f1b73c2009997de",
-  "_spec": "https://github.com/TA2k/ioBroker.weishaupt-wem/tarball/b9f0d8985bdcc9e92b3fb8d73cb401af1a8ecccc",
-  "_where": "/usr/local/iobroker/node_modules/iobroker.js-controller",
   "author": {
     "name": "ta2k",
     "email": "tombox2020@gmail.com"
@@ -92,7 +45,7 @@
   "name": "iobroker.weishaupt-wem",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ta2k/ioBroker.weishaupt-wem.git"
+    "url": "git+https://github.com/TA2k/ioBroker.weishaupt-wem.git"
   },
   "scripts": {
     "lint": "eslint",
@@ -102,5 +55,5 @@
     "test:package": "mocha test/package --exit",
     "test:unit": "mocha test/unit --exit"
   },
-  "version": "0.0.4"
+  "version": "0.0.5"
 }
