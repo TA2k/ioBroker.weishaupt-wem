@@ -498,7 +498,9 @@ class WeishauptWem extends utils.Adapter {
 					this.login().then(() => {
 						this.log.debug("Login successful");
 						this.setState("info.connection", true, true);
-						this.switchFachmann()
+						this.switchFachmann().then(() => {
+							this.getStatus()
+						});
 					});
 					reject();
 				}
