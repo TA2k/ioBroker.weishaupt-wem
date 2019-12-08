@@ -286,7 +286,7 @@ class WeishauptWem extends utils.Adapter {
 			});
 		});
 	}
-	getStatus() {
+		getStatus() {
 		return new Promise((resolve, reject) => {
 			this.log.debug("getHomesStatus");
 			request.get({
@@ -309,6 +309,7 @@ class WeishauptWem extends utils.Adapter {
 				}
 				try {
 					const dom = new JSDOM(body);
+					let statusCount = 0;
 					let form = {};
 					const deviceInfo = dom.window.document.querySelector(".DeviceInfo").textContent;
 					this.setObjectNotExists(deviceInfo, {
@@ -468,22 +469,33 @@ class WeishauptWem extends utils.Adapter {
 							const label = dataCell.nextElementSibling.textContent.trim().replace(/\./g, "");
 							const labelWoSpaces = label.replace(/ /g, "");
 							let value = dataCell.nextElementSibling.nextElementSibling.textContent.trim()
-							this.setObjectNotExists(deviceInfo + "." + labelWoSpaces, {
+							
+							const valueArray = value.split(" ");
+							valueArray[0] = valueArray[0].replace(',', '.');
+							let unit = "";
+							if (!isNaN(valueArray[0])) {
+								value = parseFloat(valueArray[0])
+								
+							}
+							if (valueArray[1]) {
+								unit = valueArray[1]
+							}
+							if (labelWoSpaces==="Status") {
+								labelWoSpaces+ statusCount;
+								statusCount++;
+							}
+							this.extendObject(deviceInfo + "." + labelWoSpaces, {
 								type: "state",
 								common: {
 									name: label,
 									role: "indicator",
 									type: "mixed",
 									write: false,
-									read: true
+									read: true,
+									unit: unit
 								},
 								native: {}
 							});
-							const valueArray = value.split(" ");
-							valueArray[0] = valueArray[0].replace(',', '.');
-							if (!isNaN(valueArray[0])) {
-								value = parseFloat(valueArray[0])
-							}
 							this.setState(deviceInfo + "." + labelWoSpaces, value, true);
 
 						}
