@@ -452,7 +452,7 @@ class WeishauptWem extends utils.Adapter {
 						native: {}
 					});
 					const status = dom.window.document.querySelector("#ctl00_DeviceContextControl1_DeviceStatusText").textContent;
-					this.setObjectNotExists(deviceInfo + ".status", {
+					this.setObjectNotExists(deviceInfo + ".OnlineStatus", {
 						type: "state",
 						common: {
 							name: "Status",
@@ -463,11 +463,11 @@ class WeishauptWem extends utils.Adapter {
 						},
 						native: {}
 					});
-					this.setState(deviceInfo + ".status", status, true);
+					this.setState(deviceInfo + ".OnlineStatus", status, true);
 					for (const dataCell of dom.window.document.querySelectorAll(".simpleDataIconCell")) {
 						if (dataCell.nextSibling) {
 							const label = dataCell.nextElementSibling.textContent.trim().replace(/\./g, "");
-							const labelWoSpaces = label.replace(/ /g, "");
+							let labelWoSpaces = label.replace(/ /g, "");
 							let value = dataCell.nextElementSibling.nextElementSibling.textContent.trim()
 							
 							const valueArray = value.split(" ");
@@ -481,10 +481,10 @@ class WeishauptWem extends utils.Adapter {
 								unit = valueArray[1]
 							}
 							if (labelWoSpaces==="Status") {
-								labelWoSpaces+ statusCount;
+								labelWoSpaces=labelWoSpaces+ statusCount;
 								statusCount++;
 							}
-							this.extendObject(deviceInfo + "." + labelWoSpaces, {
+							this.setObjectNotExists(deviceInfo + "." + labelWoSpaces, {
 								type: "state",
 								common: {
 									name: label,
