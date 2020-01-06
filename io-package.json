@@ -76,7 +76,7 @@
     "readme": "https://github.com/ta2k/ioBroker.weishaupt-wem/blob/master/README.md",
     "loglevel": "info",
     "mode": "daemon",
-    "type": "household",
+    "type": "climate-control",
     "compact": true,
     "materialize": true,
     "dependencies": [
