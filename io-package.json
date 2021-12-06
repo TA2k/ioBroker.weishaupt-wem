@@ -1,8 +1,11 @@
 {
   "common": {
     "name": "weishaupt-wem",
-    "version": "0.0.9",
+    "version": "0.0.10",
     "news": {
+      "0.0.10": {
+        "en": "Update dependencies"
+      },
       "0.0.7": {
         "en": "Fix for Status label."
       },
