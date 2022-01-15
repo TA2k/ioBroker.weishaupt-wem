@@ -326,7 +326,7 @@ class WeishauptWem extends utils.Adapter {
                         let statusCount = 0;
                         const form = {};
 
-                        const deviceInfo = dom.window.document.querySelector(".DeviceInfo").textContent;
+                        const deviceInfo = dom.window.document.querySelector(".DeviceInfo").textContent.replace(/\./g, "");
                         this.setObjectNotExists(deviceInfo, {
                             type: "device",
                             common: {
