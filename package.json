@@ -1,59 +1,59 @@
 {
-  "author": {
-    "name": "ta2k",
-    "email": "tombox2020@gmail.com"
-  },
-  "bugs": {
-    "url": "https://github.com/ta2k/ioBroker.weishaupt-wem/issues"
-  },
-  "bundleDependencies": false,
-  "dependencies": {
-    "@iobroker/adapter-core": "^2.5.1",
-    "canvas": "^2.8.0",
-    "jsdom": "^18.1.1",
-    "request": "^2.88.2"
-  },
-  "deprecated": false,
-  "description": "Adapter for weishaupt WEM Portal",
-  "devDependencies": {
-    "@iobroker/testing": "^2.4.2",
-    "@types/chai": "^4.2.14",
-    "@types/chai-as-promised": "^7.1.2",
-    "@types/gulp": "^4.0.8",
-    "@types/mocha": "^5.2.7",
-    "@types/node": "^14.14.25",
-    "@types/proxyquire": "^1.3.28",
-    "@types/sinon": "^9.0.10",
-    "@types/sinon-chai": "^3.2.3",
-    "chai": "^4.3.0",
-    "chai-as-promised": "^7.1.1",
-    "eslint": "^7.19.0",
-    "eslint-plugin-promise": "^4.3.1",
-    "mocha": "^8.2.1",
-    "proxyquire": "^2.1.3",
-    "sinon": "^7.5.0",
-    "sinon-chai": "^3.5.0"
-  },
-  "homepage": "https://github.com/ta2k/ioBroker.weishaupt-wem",
-  "keywords": [
-    "weishaupt",
-    "WEM",
-    "WEM Portal"
-  ],
-  "license": "MIT",
-  "main": "main.js",
-  "name": "iobroker.weishaupt-wem",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/TA2k/ioBroker.weishaupt-wem.git"
-  },
-  "scripts": {
-    "lint": "eslint",
-    "test": "npm run test:js && npm run test:package",
-    "test:integration": "mocha test/integration --exit",
-    "test:js": "mocha --opts test/mocha.custom.opts",
-    "test:package": "mocha test/package --exit",
-    "test:unit": "mocha test/unit --exit"
-  },
-  "version": "0.0.10"
+    "author": {
+        "name": "ta2k",
+        "email": "tombox2020@gmail.com"
+    },
+    "bugs": {
+        "url": "https://github.com/ta2k/ioBroker.weishaupt-wem/issues"
+    },
+    "bundleDependencies": false,
+    "dependencies": {
+        "@iobroker/adapter-core": "^2.6.0",
+        "jsdom": "^19.0.0",
+        "request": "^2.88.2"
+    },
+    "deprecated": false,
+    "description": "Adapter for weishaupt WEM Portal",
+    "devDependencies": {
+        "@alcalzone/release-script": "^2.2.2",
+        "@iobroker/adapter-dev": "^1.0.0",
+        "@iobroker/testing": "^2.5.4",
+        "@types/chai": "^4.3.0",
+        "@types/chai-as-promised": "^7.1.5",
+        "@types/mocha": "^9.1.0",
+        "@types/node": "^14.18.12",
+        "@types/proxyquire": "^1.3.28",
+        "@types/sinon": "^10.0.11",
+        "@types/sinon-chai": "^3.2.8",
+        "chai": "^4.3.6",
+        "chai-as-promised": "^7.1.1",
+        "eslint": "^8.10.0",
+        "mocha": "^9.2.1",
+        "proxyquire": "^2.1.3",
+        "sinon": "^13.0.1",
+        "sinon-chai": "^3.7.0",
+        "typescript": "~4.5.5"
+    },
+    "homepage": "https://github.com/ta2k/ioBroker.weishaupt-wem",
+    "keywords": [
+        "weishaupt",
+        "WEM",
+        "WEM Portal"
+    ],
+    "license": "MIT",
+    "main": "main.js",
+    "name": "iobroker.weishaupt-wem",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/TA2k/ioBroker.weishaupt-wem.git"
+    },
+    "scripts": {
+        "lint": "eslint",
+        "test": "npm run test:js && npm run test:package",
+        "test:integration": "mocha test/integration --exit",
+        "test:js": "mocha --opts test/mocha.custom.opts",
+        "test:package": "mocha test/package --exit",
+        "test:unit": "mocha test/unit --exit"
+    },
+    "version": "0.0.12"
 }

@@ -4,6 +4,15 @@
  * Created with @iobroker/create-adapter v1.17.0
  */
 
+//disable canvas because of missing rebuild
+const Module = require("module");
+const originalRequire = Module.prototype.require;
+Module.prototype.require = function () {
+    if (arguments[0] === "canvas") {
+        return { createCanvas: null, createImageData: null, loadImage: null };
+    }
+    return originalRequire.apply(this, arguments);
+};
 // The adapter-core module gives you access to the core ioBroker functions
 // you need to create an adapter
 const utils = require("@iobroker/adapter-core");
@@ -196,6 +205,7 @@ class WeishauptWem extends utils.Adapter {
                                     reject();
                                 } else {
                                     try {
+                                        this.log.debug("Switched to Fachmann");
                                         this.log.debug(body);
                                         if (body.indexOf('Object moved to <a href="https://www.wemportal.com/Web/Default.aspx"') !== -1) {
                                             resolve();
@@ -239,8 +249,10 @@ class WeishauptWem extends utils.Adapter {
                     }
 
                     try {
+                        this.log.debug(body);
                         const dom = new JSDOM(body);
-                        const form = {};
+                        let form = {};
+
                         for (const formElement of dom.window.document.querySelectorAll("input")) {
                             if (formElement.type === "hidden") {
                                 form[formElement.name] = formElement.value;
@@ -279,6 +291,9 @@ class WeishauptWem extends utils.Adapter {
                                     reject();
                                 } else {
                                     try {
+                                        if (body.includes('moved to <a href="/Web/Login.aspx"')) {
+                                            this.log.error("Login expired");
+                                        }
                                         this.log.debug(body);
                                         resolve();
                                     } catch (error) {
@@ -703,6 +718,10 @@ class WeishauptWem extends utils.Adapter {
                             const pArray = state.val.replace(/ /g, "").split(",");
                             if (isNaN(pArray[1])) {
                                 this.log.debug(pArray[1] + " is  not a number");
+                            }
+                            if (pArray[0].includes("wemportal.de/")) {
+                                this.log.error("Please use wemportal.com portal");
+                                return;
                             }
                             this.switchState(pArray[0], parseFloat(pArray[1]));
                         } catch (error) {
