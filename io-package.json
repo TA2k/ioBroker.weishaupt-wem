@@ -1,8 +1,11 @@
 {
     "common": {
         "name": "weishaupt-wem",
-        "version": "0.0.12",
+        "version": "0.0.13",
         "news": {
+            "0.0.13": {
+                "en": "update dependencies"
+            },
             "0.0.12": {
                 "en": "add warning for customBefehle"
             },
