@@ -245,7 +245,7 @@ class WeishauptWem extends utils.Adapter {
                 (err, resp, body) => {
                     if (err || resp.statusCode >= 400 || !body) {
                         this.log.error(err);
-                        reject();
+                        resolve();
                     }
 
                     try {
@@ -288,7 +288,7 @@ class WeishauptWem extends utils.Adapter {
                             (err, resp, body) => {
                                 if (err || resp.statusCode >= 400 || !body) {
                                     this.log.error(err);
-                                    reject();
+                                    resolve();
                                 } else {
                                     try {
                                         if (body.includes('moved to <a href="/Web/Login.aspx"')) {
@@ -298,7 +298,7 @@ class WeishauptWem extends utils.Adapter {
                                         resolve();
                                     } catch (error) {
                                         this.log.error(error);
-                                        reject();
+                                        resolve();
                                     }
                                 }
                             }
@@ -306,7 +306,7 @@ class WeishauptWem extends utils.Adapter {
                     } catch (error) {
                         this.log.error(error);
                         this.log.error(error.stack);
-                        reject();
+                        resolve();
                     }
                 }
             );
