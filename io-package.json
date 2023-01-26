@@ -71,14 +71,8 @@
             "pl": "Adapter do weishaupt WEM Portal",
             "zh-cn": "weishaupt WEM门户适配器"
         },
-        "authors": [
-            "ta2k <tombox2020@gmail.com>"
-        ],
-        "keywords": [
-            "weishaupt",
-            "WEM",
-            "WEM Portal"
-        ],
+        "authors": ["ta2k <tombox2020@gmail.com>"],
+        "keywords": ["weishaupt", "WEM", "WEM Portal"],
         "license": "MIT",
         "platform": "Javascript/Node.js",
         "main": "main.js",
@@ -91,6 +85,11 @@
         "type": "climate-control",
         "compact": true,
         "materialize": true,
+        "plugins": {
+            "sentry": {
+                "dsn": "https://59246436c9944d05a18f58d7c764530e@sentry.iobroker.net/212"
+            }
+        },
         "dependencies": [
             {
                 "js-controller": ">=1.4.2"

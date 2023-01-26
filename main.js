@@ -264,7 +264,10 @@ class WeishauptWem extends utils.Adapter {
                         }
                         state += value;
                         let valueID = "ctl00$DialogContent$ddlNewValue";
-                        if (dom.window.document.querySelector(".ParameterDetailNewValue") && dom.window.document.querySelector(".ParameterDetailNewValue").id) {
+                        if (
+                            dom.window.document.querySelector(".ParameterDetailNewValue") &&
+                            dom.window.document.querySelector(".ParameterDetailNewValue").id
+                        ) {
                             valueID = dom.window.document.querySelector(".ParameterDetailNewValue").name;
                         }
                         form[valueID] = state;
@@ -501,7 +504,13 @@ class WeishauptWem extends utils.Adapter {
                                 let labelWoSpaces = label.replace(/ /g, "");
                                 let value = dataCell.nextElementSibling.nextElementSibling.textContent.trim();
 
-                                const valueArray = value.split(" ");
+                                let valueArray = value.split(" ");
+                                if (valueArray.length === 1) {
+                                    valueArray = value.split("m");
+                                    if (valueArray[1]) {
+                                        valueArray[1] = "m" + valueArray[1];
+                                    }
+                                }
                                 valueArray[0] = valueArray[0].replace(",", ".");
                                 let unit = "";
                                 if (!isNaN(valueArray[0])) {
@@ -720,13 +729,17 @@ class WeishauptWem extends utils.Adapter {
                                 this.log.debug(pArray[1] + " is  not a number");
                             }
                             if (pArray[0].includes("wemportal.de/")) {
-                                this.log.error("Please use wemportal.com portal");
+                                this.log.error(
+                                    "Please use wemportal.com instead of wemportal.de portal/ Bitte wemportal.com anstatt wemportal.de verwenden"
+                                );
                                 return;
                             }
                             this.switchState(pArray[0], parseFloat(pArray[1]));
                         } catch (error) {
                             this.log.error("No valid custom befehl. Example: ");
-                            this.log.error("https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=22686&entityvalue...., 52");
+                            this.log.error(
+                                "https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=22686&entityvalue...., 52"
+                            );
                         }
                     }
                 }
