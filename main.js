@@ -49,9 +49,10 @@ class WeishauptWem extends utils.Adapter {
         this.setState("info.connection", false, true);
         // Reset the connection indicator during startup
         this.login().then(() => {
-            this.log.debug("Login successful");
+            this.log.info("Login successful");
             this.setState("info.connection", true, true);
             this.switchFachmann().then(() => {
+                this.log.info("Switched to Fachmann");
                 this.getStatus()
                     .then(() => {})
                     .catch(() => {
@@ -80,7 +81,8 @@ class WeishauptWem extends utils.Adapter {
                     headers: {
                         "Accept-Language": "en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6",
                         "Accept-Encoding": "gzip, deflate, br",
-                        "User-Agent": "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
+                        "User-Agent":
+                            "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
                         Accept: "*/*",
                     },
                     gzip: true,
@@ -110,7 +112,8 @@ class WeishauptWem extends utils.Adapter {
                                 headers: {
                                     "Accept-Language": "en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6",
                                     "Accept-Encoding": "gzip, deflate, br",
-                                    "User-Agent": "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
+                                    "User-Agent":
+                                        "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
                                     Accept: "*/*",
                                     "Content-Type": "application/x-www-form-urlencoded",
                                 },
@@ -134,13 +137,13 @@ class WeishauptWem extends utils.Adapter {
                                         reject();
                                     }
                                 }
-                            }
+                            },
                         );
                     } catch (error) {
                         this.log.error(error);
                         reject();
                     }
-                }
+                },
             );
         });
     }
@@ -152,7 +155,8 @@ class WeishauptWem extends utils.Adapter {
                     headers: {
                         "Accept-Language": "en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6",
                         "Accept-Encoding": "gzip, deflate, br",
-                        "User-Agent": "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
+                        "User-Agent":
+                            "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
                         Accept: "*/*",
                     },
                     gzip: true,
@@ -190,7 +194,8 @@ class WeishauptWem extends utils.Adapter {
                                 headers: {
                                     "Accept-Language": "en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6",
                                     "Accept-Encoding": "gzip, deflate, br",
-                                    "User-Agent": "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
+                                    "User-Agent":
+                                        "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
                                     Accept: "*/*",
                                     "Content-Type": "application/x-www-form-urlencoded",
                                 },
@@ -207,7 +212,11 @@ class WeishauptWem extends utils.Adapter {
                                     try {
                                         this.log.debug("Switched to Fachmann");
                                         this.log.debug(body);
-                                        if (body.indexOf('Object moved to <a href="https://www.wemportal.com/Web/Default.aspx"') !== -1) {
+                                        if (
+                                            body.indexOf(
+                                                'Object moved to <a href="https://www.wemportal.com/Web/Default.aspx"',
+                                            ) !== -1
+                                        ) {
                                             resolve();
                                         }
                                     } catch (error) {
@@ -215,14 +224,14 @@ class WeishauptWem extends utils.Adapter {
                                         reject();
                                     }
                                 }
-                            }
+                            },
                         );
                     } catch (error) {
                         this.log.error(error);
                         this.log.error(error.stack);
                         reject();
                     }
-                }
+                },
             );
         });
     }
@@ -235,7 +244,8 @@ class WeishauptWem extends utils.Adapter {
                     headers: {
                         "Accept-Language": "en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6",
                         "Accept-Encoding": "gzip, deflate, br",
-                        "User-Agent": "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
+                        "User-Agent":
+                            "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
                         Accept: "*/*",
                     },
                     gzip: true,
@@ -244,7 +254,9 @@ class WeishauptWem extends utils.Adapter {
                 },
                 (err, resp, body) => {
                     if (err || resp.statusCode >= 400 || !body) {
+                        this.log.error("Get Command Error");
                         this.log.error(err);
+                        this.log.error(body);
                         resolve();
                     }
 
@@ -271,7 +283,8 @@ class WeishauptWem extends utils.Adapter {
                             valueID = dom.window.document.querySelector(".ParameterDetailNewValue").name;
                         }
                         form[valueID] = state;
-                        form["ctl00$TSMeControlNetDialog"] = "ctl00$ctl00$DialogContent$DivDialogPanel|ctl00$DialogContent$BtnSave";
+                        form["ctl00$TSMeControlNetDialog"] =
+                            "ctl00$ctl00$DialogContent$DivDialogPanel|ctl00$DialogContent$BtnSave";
                         form["__EVENTTARGET"] = "ctl00$DialogContent$BtnSave";
                         request.post(
                             {
@@ -279,7 +292,8 @@ class WeishauptWem extends utils.Adapter {
                                 headers: {
                                     "Accept-Language": "en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6",
                                     "Accept-Encoding": "gzip, deflate, br",
-                                    "User-Agent": "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
+                                    "User-Agent":
+                                        "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
                                     Accept: "*/*",
                                     "Content-Type": "application/x-www-form-urlencoded",
                                 },
@@ -290,8 +304,13 @@ class WeishauptWem extends utils.Adapter {
                             },
                             (err, resp, body) => {
                                 if (err || resp.statusCode >= 400 || !body) {
+                                    this.log.error("Post Command Error");
+                                    this.log.error("form sended: " + JSON.stringify(form));
+                                    this.log.error(resp.statusCode);
                                     this.log.error(err);
+                                    this.log.error(body);
                                     resolve();
+                                    return;
                                 } else {
                                     try {
                                         if (body.includes('moved to <a href="/Web/Login.aspx"')) {
@@ -300,18 +319,21 @@ class WeishauptWem extends utils.Adapter {
                                         this.log.debug(body);
                                         resolve();
                                     } catch (error) {
+                                        this.log.error("Post Receive Error");
+                                        this.log.error(body);
                                         this.log.error(error);
                                         resolve();
                                     }
                                 }
-                            }
+                            },
                         );
                     } catch (error) {
+                        this.log.error("Switch State Error");
                         this.log.error(error);
                         this.log.error(error.stack);
                         resolve();
                     }
-                }
+                },
             );
         });
     }
@@ -324,7 +346,8 @@ class WeishauptWem extends utils.Adapter {
                     headers: {
                         "Accept-Language": "en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6",
                         "Accept-Encoding": "gzip, deflate, br",
-                        "User-Agent": "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
+                        "User-Agent":
+                            "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
                         Accept: "*/*",
                     },
                     gzip: true,
@@ -344,7 +367,10 @@ class WeishauptWem extends utils.Adapter {
                         let statusCount = 0;
                         const form = {};
 
-                        const deviceInfo = dom.window.document.querySelector(".DeviceInfo").textContent.replace(/\./g, "");
+                        const deviceInfo = dom.window.document
+                            .querySelector(".DeviceInfo")
+                            .textContent.replace(/\./g, "");
+                        this.log.debug(deviceInfo);
                         this.setObjectNotExists(deviceInfo, {
                             type: "device",
                             common: {
@@ -483,7 +509,9 @@ class WeishauptWem extends utils.Adapter {
                             },
                             native: {},
                         });
-                        const status = dom.window.document.querySelector("#ctl00_DeviceContextControl1_DeviceStatusText").textContent;
+                        const status = dom.window.document.querySelector(
+                            "#ctl00_DeviceContextControl1_DeviceStatusText",
+                        ).textContent;
                         this.setObjectNotExistsAsync(deviceInfo + ".OnlineStatus", {
                             type: "state",
                             common: {
@@ -557,7 +585,7 @@ class WeishauptWem extends utils.Adapter {
                         });
                         reject();
                     }
-                }
+                },
             );
         });
     }
@@ -593,7 +621,7 @@ class WeishauptWem extends utils.Adapter {
                         if (isNaN(this.dataPointId)) {
                             this.switchState(
                                 "https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/WwpsParameterDetails.aspx?entityvalue=0600000000000000008000b9ef0100110003&readdata=False&rwndrnd=0.20391030307588598",
-                                state.val
+                                state.val,
                             );
                         } else {
                             this.switchState(
@@ -601,7 +629,7 @@ class WeishauptWem extends utils.Adapter {
                                     this.dataPointId +
                                     "&rwndrnd=0.8080932382276982",
                                 state.val,
-                                208557
+                                208557,
                             );
                         }
                     }
@@ -614,7 +642,7 @@ class WeishauptWem extends utils.Adapter {
                                     (this.dataPointId + 1) +
                                     "&rwndrnd=0.7505293487695444",
                                 state.val,
-                                209321
+                                209321,
                             );
                         }
                     }
@@ -622,14 +650,14 @@ class WeishauptWem extends utils.Adapter {
                         if (isNaN(this.dataPointId)) {
                             this.switchState(
                                 "https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/WwpsParameterDetails.aspx?entityvalue=320019010000CD00D24000B9EF0300110104&readdata=True&rwndrnd=0.7551314485659901",
-                                state.val * 10
+                                state.val * 10,
                             );
                         } else {
                             this.switchState(
                                 "https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=23764&entityvalueid=209347&unit=@@wh-Unit-1&entitytype=Float&entityvalue=25&GroupId=55018&ElsterDataType=68&name=@@wh-603-ET-Name-14&OVIndex=9531&DataPointId=" +
                                     (this.dataPointId + 1) +
                                     "&rwndrnd=0.5645296482835123",
-                                state.val
+                                state.val,
                             );
                         }
                     }
@@ -637,14 +665,14 @@ class WeishauptWem extends utils.Adapter {
                         if (isNaN(this.dataPointId)) {
                             this.switchState(
                                 "https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/WwpsParameterDetails.aspx?entityvalue=3200190200011800D24000B9EF0300110104&readdata=True&rwndrnd=0.8885759157701352",
-                                state.val * 10
+                                state.val * 10,
                             );
                         } else {
                             this.switchState(
                                 "https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=23765&entityvalueid=209348&unit=@@wh-Unit-1&entitytype=Float&entityvalue=21&GroupId=55018&ElsterDataType=68&name=@@wh-603-ET-Name-13&OVIndex=9530&DataPointId=" +
                                     (this.dataPointId + 1) +
                                     "&rwndrnd=0.6349659495670719",
-                                state.val
+                                state.val,
                             );
                         }
                     }
@@ -653,14 +681,14 @@ class WeishauptWem extends utils.Adapter {
                         if (isNaN(this.dataPointId)) {
                             this.switchState(
                                 "https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/WwpsParameterDetails.aspx?entityvalue=320019030000A000CD4000B9EF0300110104&readdata=True&rwndrnd=0.33021604398910664",
-                                state.val * 10
+                                state.val * 10,
                             );
                         } else {
                             this.switchState(
                                 "https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=23766&entityvalueid=209349&unit=@@wh-Unit-1&entitytype=Float&entityvalue=17&GroupId=55018&ElsterDataType=68&name=@@wh-603-ET-Name-12&OVIndex=9529&DataPointId=" +
                                     (this.dataPointId + 1) +
                                     "&rwndrnd=0.19101872272453302",
-                                state.val
+                                state.val,
                             );
                         }
                     }
@@ -668,14 +696,14 @@ class WeishauptWem extends utils.Adapter {
                         if (isNaN(this.dataPointId)) {
                             this.switchState(
                                 "https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/WwpsParameterDetails.aspx?entityvalue=46004201000037003C4000B9EF0300110104&readdata=True&rwndrnd=0.2514459684152772",
-                                state.val * 10
+                                state.val * 10,
                             );
                         } else {
                             this.switchState(
                                 "https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=22686&entityvalueid=207552&unit=@@wh-Unit-1&entitytype=Float&entityvalue=50&GroupId=53494&ElsterDataType=68&name=@@wh-582-ET-Name-5&OVIndex=9529&DataPointId=" +
                                     (this.dataPointId + 2) +
                                     "&rwndrnd=0.6669689557062952",
-                                state.val
+                                state.val,
                             );
                         }
                     }
@@ -683,14 +711,14 @@ class WeishauptWem extends utils.Adapter {
                         if (isNaN(this.dataPointId)) {
                             this.switchState(
                                 "https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/WwpsParameterDetails.aspx?entityvalue=4600420200003200374000B9EF0300110104&readdata=True&rwndrnd=0.8895149497674137",
-                                state.val * 10
+                                state.val * 10,
                             );
                         } else {
                             this.switchState(
                                 "https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=22687&entityvalueid=207553&unit=@@wh-Unit-1&entitytype=Float&entityvalue=40&GroupId=53494&ElsterDataType=68&name=@@wh-582-ET-Name-6&OVIndex=9528&DataPointId=" +
                                     (this.dataPointId + 2) +
                                     "&rwndrnd=0.9772733556889273",
-                                state.val
+                                state.val,
                             );
                         }
                     }
@@ -698,14 +726,14 @@ class WeishauptWem extends utils.Adapter {
                         if (isNaN(this.dataPointId)) {
                             this.switchState(
                                 "https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/WwpsParameterDetails.aspx?entityvalue=4600410000000000008000B9EF0200110004&readdata=False&rwndrnd=0.514766269441187",
-                                state.val
+                                state.val,
                             );
                         } else {
                             this.switchState(
                                 "https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=22688&entityvalueid=207554&unit=&entitytype=Int&entityvalue=0&GroupId=53496&ElsterDataType=64&name=@@wh-582-ET-Name-8&OVIndex=9545&DataPointId=" +
                                     (this.dataPointId + 2) +
                                     "&rwndrnd=0.5910648822562681",
-                                state.val
+                                state.val,
                             );
                         }
                     }
@@ -718,7 +746,7 @@ class WeishauptWem extends utils.Adapter {
                                     (this.dataPointId + 5) +
                                     "&rwndrnd=0.3333835266610612",
                                 state.val,
-                                210496
+                                210496,
                             );
                         }
                     }
@@ -729,16 +757,14 @@ class WeishauptWem extends utils.Adapter {
                                 this.log.debug(pArray[1] + " is  not a number");
                             }
                             if (pArray[0].includes("wemportal.de/")) {
-                                this.log.error(
-                                    "Please use wemportal.com instead of wemportal.de portal/ Bitte wemportal.com anstatt wemportal.de verwenden"
-                                );
+                                this.log.error("Please use wemportal.com portal");
                                 return;
                             }
                             this.switchState(pArray[0], parseFloat(pArray[1]));
                         } catch (error) {
                             this.log.error("No valid custom befehl. Example: ");
                             this.log.error(
-                                "https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=22686&entityvalue...., 52"
+                                "https://www.wemportal.com/Web/UControls/Weishaupt/DataDisplay/ParameterDetails.aspx?Id=22686&entityvalue...., 52",
                             );
                         }
                     }
