@@ -60,8 +60,6 @@ class WeishauptWem extends utils.Adapter {
         this.setState("info.connection", false, true);
         // Reset the connection indicator during startup
         await this.login();
-        this.log.info("Login successful");
-        this.setState("info.connection", true, true);
         await this.switchFachmann();
         this.log.info("Switched to Fachmann");
         await this.getStatus();
@@ -86,7 +84,7 @@ class WeishauptWem extends utils.Adapter {
                 "Accept-Language": "de,en;q=0.9",
             },
         })
-            .then((resp) => {
+            .then(async (resp) => {
                 const dom = new JSDOM(resp.data);
                 const form = {};
                 for (const formElement of dom.window.document.querySelectorAll("input")) {
@@ -97,7 +95,7 @@ class WeishauptWem extends utils.Adapter {
                 form["ctl00$content$tbxUserName"] = this.config.user;
                 form["ctl00$content$tbxPassword"] = this.config.password;
                 form["ctl00$content$btnLogin"] = "Anmelden";
-                this.requestClient({
+                await this.requestClient({
                     method: "post",
                     url: "https://www.wemportal.com/Web/Login.aspx",
                     headers: {
@@ -108,10 +106,13 @@ class WeishauptWem extends utils.Adapter {
                         "Content-Type": "application/x-www-form-urlencoded",
                     },
                     data: form,
+                    withCredentials: true,
                 })
                     .then((resp) => {
                         this.log.debug(resp.data);
-                        if (resp.data.indexOf('Object moved to <a href="/Web/Default.aspx"') !== -1) {
+                        if (resp.data.indexOf("ctl00_btnLogout") !== -1) {
+                            this.log.info("Login successful");
+                            this.setState("info.connection", true, true);
                             return;
                         } else {
                             this.log.error("Login failed");
@@ -127,8 +128,8 @@ class WeishauptWem extends utils.Adapter {
                 error.resp && this.log.error(error.resp.data);
             });
     }
-    switchFachmann() {
-        this.requestClient({
+    async switchFachmann() {
+        await this.requestClient({
             method: "get",
             url: "https://www.wemportal.com/Web/Default.aspx",
             headers: {
@@ -137,8 +138,9 @@ class WeishauptWem extends utils.Adapter {
                 "User-Agent": "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
                 Accept: "*/*",
             },
+            withCredentials: true,
         })
-            .then((resp) => {
+            .then(async (resp) => {
                 const body = resp.data;
                 const dpStart = body.indexOf("DataPointId=") + 12;
                 const dpEnd = body.indexOf("&", dpStart);
@@ -158,7 +160,7 @@ class WeishauptWem extends utils.Adapter {
                 form["__EVENTARGUMENT"] = "3";
                 form["ctl00_SubMenuControl1_subMenu_ClientState"] =
                     '{"logEntries":[{"Type":3},{"Type":1,"Index":"0","Data":{"text":"Übersicht","value":"110"}},{"Type":1,"Index":"1","Data":{"text":"Anlage:","value":""}},{"Type":1,"Index":"2","Data":{"text":"Benutzer","value":"222"}},{"Type":1,"Index":"3","Data":{"text":"Fachmann","value":"223","selected":true}},{"Type":1,"Index":"4","Data":{"text":"Statistik","value":"225"}},{"Type":1,"Index":"5","Data":{"text":"Datenlogger","value":"224"}}],"selectedItemIndex":"3"}';
-                this.requestClient({
+                await this.requestClient({
                     url: "https://www.wemportal.com/Web/Default.aspx",
                     headers: {
                         "Accept-Language": "en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6",
@@ -168,15 +170,15 @@ class WeishauptWem extends utils.Adapter {
                         Accept: "*/*",
                         "Content-Type": "application/x-www-form-urlencoded",
                     },
+                    withCredentials: true,
+                    maxRedirects: 0,
                 })
                     .then((resp) => {
                         const body = resp.data;
 
                         this.log.debug("Switched to Fachmann");
                         this.log.debug(body);
-                        if (
-                            body.indexOf('Object moved to <a href="https://www.wemportal.com/Web/Default.aspx"') !== -1
-                        ) {
+                        if (resp.config.url === "https://www.wemportal.com/Web/Default.aspx") {
                             return;
                         }
                         this.log.error("Switch to Fachmann failed");
@@ -192,8 +194,8 @@ class WeishauptWem extends utils.Adapter {
             });
     }
 
-    switchState(url, value, baseValue) {
-        this.requestClient({
+    async switchState(url, value, baseValue) {
+        await this.requestClient({
             method: "get",
             url: url,
             headers: {
@@ -202,8 +204,9 @@ class WeishauptWem extends utils.Adapter {
                 "User-Agent": "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
                 Accept: "*/*",
             },
+            withCredentials: true,
         })
-            .then((resp) => {
+            .then(async (resp) => {
                 const body = resp.data;
 
                 this.log.debug(body);
@@ -231,7 +234,7 @@ class WeishauptWem extends utils.Adapter {
                 form["ctl00$TSMeControlNetDialog"] =
                     "ctl00$ctl00$DialogContent$DivDialogPanel|ctl00$DialogContent$BtnSave";
                 form["__EVENTTARGET"] = "ctl00$DialogContent$BtnSave";
-                this.requestClient({
+                await this.requestClient({
                     method: "post",
                     url: url,
                     headers: {
@@ -242,6 +245,8 @@ class WeishauptWem extends utils.Adapter {
                         Accept: "*/*",
                         "Content-Type": "application/x-www-form-urlencoded",
                     },
+                    withCredentials: true,
+                    data: form,
                 })
                     .then((resp) => {
                         const body = resp.data;
@@ -267,9 +272,9 @@ class WeishauptWem extends utils.Adapter {
                 error.resp && this.log.error(error.resp.data);
             });
     }
-    getStatus() {
+    async getStatus() {
         this.log.debug("getHomesStatus");
-        this.requestClient({
+        await this.requestClient({
             method: "get",
             url: "https://www.wemportal.com/Web/Default.aspx",
             headers: {
@@ -278,6 +283,7 @@ class WeishauptWem extends utils.Adapter {
                 "User-Agent": "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
                 Accept: "*/*",
             },
+            withCredentials: true,
         })
             .then(async (resp) => {
                 const body = resp.data;
