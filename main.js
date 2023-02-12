@@ -59,23 +59,16 @@ class WeishauptWem extends utils.Adapter {
 
         this.setState("info.connection", false, true);
         // Reset the connection indicator during startup
-        this.login().then(() => {
-            this.log.info("Login successful");
-            this.setState("info.connection", true, true);
-            this.switchFachmann().then(() => {
-                this.log.info("Switched to Fachmann");
-                this.getStatus()
-                    .then(() => {})
-                    .catch(() => {
-                        this.log.error("Failed to get status");
-                    });
-                this.updateInterval = setInterval(() => {
-                    this.getStatus().catch(() => {
-                        this.log.error("Failed to get status");
-                    });
-                }, this.config.interval * 60 * 1000);
-            });
-        });
+        await this.login();
+        this.log.info("Login successful");
+        this.setState("info.connection", true, true);
+        await this.switchFachmann();
+        this.log.info("Switched to Fachmann");
+        await this.getStatus();
+
+        this.updateInterval = setInterval(() => {
+            this.getStatus();
+        }, this.config.interval * 60 * 1000);
 
         this.subscribeStates("*");
     }
@@ -286,7 +279,7 @@ class WeishauptWem extends utils.Adapter {
                 Accept: "*/*",
             },
         })
-            .then((resp) => {
+            .then(async (resp) => {
                 const body = resp.data;
 
                 try {
@@ -498,15 +491,11 @@ class WeishauptWem extends utils.Adapter {
                     this.log.debug(body);
                     this.log.error("Not able to parse device name and status try to relogin");
                     this.setState("info.connection", false, true);
-                    this.login().then(() => {
-                        this.log.debug("Login successful");
-                        this.setState("info.connection", true, true);
-                        this.switchFachmann().then(() => {
-                            this.getStatus().catch(() => {
-                                this.log.error("Failed to get status");
-                            });
-                        });
-                    });
+                    await this.login();
+                    this.log.debug("Login successful");
+                    this.setState("info.connection", true, true);
+                    await this.switchFachmann();
+                    await this.getStatus();
                 }
             })
             .catch((error) => {
