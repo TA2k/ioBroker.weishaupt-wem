@@ -17,7 +17,10 @@ Module.prototype.require = function () {
 // you need to create an adapter
 const utils = require("@iobroker/adapter-core");
 
-const request = require("request");
+const axios = require("axios").default;
+const tough = require("tough-cookie");
+const { HttpsCookieAgent } = require("http-cookie-agent/http");
+
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 class WeishauptWem extends utils.Adapter {
@@ -34,7 +37,15 @@ class WeishauptWem extends utils.Adapter {
         // this.on("message", this.onMessage.bind(this));
         this.on("unload", this.onUnload.bind(this));
 
-        this.jar = request.jar();
+        this.cookieJar = new tough.CookieJar();
+        this.requestClient = axios.create({
+            withCredentials: true,
+            httpsAgent: new HttpsCookieAgent({
+                cookies: {
+                    jar: this.cookieJar,
+                },
+            }),
+        });
         this.refreshTokenInterval = null;
         this.updateInterval = null;
         this.dataPointId = 0;
@@ -69,88 +80,92 @@ class WeishauptWem extends utils.Adapter {
         this.subscribeStates("*");
     }
 
-    login() {
-        return new Promise((resolve, reject) => {
-            /*
-				
-					}
-			*/
-            request.get(
-                {
+    async login() {
+        await this.requestClient({
+            method: "get",
+
+            url: "https://www.wemportal.com/Web/Login.aspx",
+            headers: {
+                "User-Agent":
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
+                Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+
+                "Accept-Language": "de,en;q=0.9",
+            },
+        })
+            .then((resp) => {
+                const dom = new JSDOM(resp.data);
+                const form = {};
+                for (const formElement of dom.window.document.querySelectorAll("input")) {
+                    if (formElement.type === "hidden") {
+                        form[formElement.name] = formElement.value;
+                    }
+                }
+                form["ctl00$content$tbxUserName"] = this.config.user;
+                form["ctl00$content$tbxPassword"] = this.config.password;
+                form["ctl00$content$btnLogin"] = "Anmelden";
+                this.requestClient({
+                    method: "post",
                     url: "https://www.wemportal.com/Web/Login.aspx",
                     headers: {
-                        "Accept-Language": "en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6",
-                        "Accept-Encoding": "gzip, deflate, br",
                         "User-Agent":
-                            "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
-                        Accept: "*/*",
+                            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
+                        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+                        "Accept-Language": "de,en;q=0.9",
+                        "Content-Type": "application/x-www-form-urlencoded",
                     },
-                    gzip: true,
-                    jar: this.jar,
-                    followAllRedirects: true,
-                },
-                (err, resp, body) => {
-                    if (err || resp.statusCode >= 400 || !body) {
-                        this.log.error(err);
-                        reject();
-                    }
-
-                    try {
-                        const dom = new JSDOM(body);
-                        const form = {};
-                        for (const formElement of dom.window.document.querySelectorAll("input")) {
-                            if (formElement.type === "hidden") {
-                                form[formElement.name] = formElement.value;
-                            }
+                    data: form,
+                })
+                    .then((resp) => {
+                        this.log.debug(resp.data);
+                        if (resp.data.indexOf('Object moved to <a href="/Web/Default.aspx"') !== -1) {
+                            return;
+                        } else {
+                            this.log.error("Login failed");
                         }
-                        form["ctl00$content$tbxUserName"] = this.config.user;
-                        form["ctl00$content$tbxPassword"] = this.config.password;
-                        form["ctl00$content$btnLogin"] = "Anmelden";
-                        request.post(
-                            {
-                                url: "https://www.wemportal.com/Web/Login.aspx",
-                                headers: {
-                                    "Accept-Language": "en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6",
-                                    "Accept-Encoding": "gzip, deflate, br",
-                                    "User-Agent":
-                                        "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
-                                    Accept: "*/*",
-                                    "Content-Type": "application/x-www-form-urlencoded",
-                                },
-                                form: form,
-                                gzip: true,
-                                jar: this.jar,
-                                followAllRedirects: false,
-                            },
-                            (err, resp, body) => {
-                                if (err || resp.statusCode >= 400 || !body) {
-                                    this.log.error(err);
-                                    reject();
-                                } else {
-                                    try {
-                                        this.log.debug(body);
-                                        if (body.indexOf('Object moved to <a href="/Web/Default.aspx"') !== -1) {
-                                            resolve();
-                                        }
-                                    } catch (error) {
-                                        this.log.error(error);
-                                        reject();
-                                    }
-                                }
-                            },
-                        );
-                    } catch (error) {
+                    })
+                    .catch((error) => {
                         this.log.error(error);
-                        reject();
-                    }
-                },
-            );
-        });
+                        error.resp && this.log.error(error.resp.data);
+                    });
+            })
+            .catch((error) => {
+                this.log.error(error);
+                error.resp && this.log.error(error.resp.data);
+            });
     }
     switchFachmann() {
-        return new Promise((resolve, reject) => {
-            request.get(
-                {
+        this.requestClient({
+            method: "get",
+            url: "https://www.wemportal.com/Web/Default.aspx",
+            headers: {
+                "Accept-Language": "en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6",
+                "Accept-Encoding": "gzip, deflate, br",
+                "User-Agent": "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
+                Accept: "*/*",
+            },
+        })
+            .then((resp) => {
+                const body = resp.data;
+                const dpStart = body.indexOf("DataPointId=") + 12;
+                const dpEnd = body.indexOf("&", dpStart);
+                this.dataPointId = parseInt(body.substring(dpStart, dpEnd));
+                if (isNaN(this.dataPointId)) {
+                    this.log.info("No dataPointid found maybe remote command are not working use customBefehl");
+                }
+                const dom = new JSDOM(body);
+                const form = {};
+                for (const formElement of dom.window.document.querySelectorAll("input")) {
+                    if (formElement.type === "hidden") {
+                        //form += formElement.name + "=" + formElement.value + "&";
+                        form[formElement.name] = formElement.value;
+                    }
+                }
+                form["__EVENTTARGET"] = "ctl00$SubMenuControl1$subMenu";
+                form["__EVENTARGUMENT"] = "3";
+                form["ctl00_SubMenuControl1_subMenu_ClientState"] =
+                    '{"logEntries":[{"Type":3},{"Type":1,"Index":"0","Data":{"text":"Übersicht","value":"110"}},{"Type":1,"Index":"1","Data":{"text":"Anlage:","value":""}},{"Type":1,"Index":"2","Data":{"text":"Benutzer","value":"222"}},{"Type":1,"Index":"3","Data":{"text":"Fachmann","value":"223","selected":true}},{"Type":1,"Index":"4","Data":{"text":"Statistik","value":"225"}},{"Type":1,"Index":"5","Data":{"text":"Datenlogger","value":"224"}}],"selectedItemIndex":"3"}';
+                this.requestClient({
                     url: "https://www.wemportal.com/Web/Default.aspx",
                     headers: {
                         "Accept-Language": "en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6",
@@ -158,88 +173,73 @@ class WeishauptWem extends utils.Adapter {
                         "User-Agent":
                             "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
                         Accept: "*/*",
+                        "Content-Type": "application/x-www-form-urlencoded",
                     },
-                    gzip: true,
-                    jar: this.jar,
-                    followAllRedirects: true,
-                },
-                (err, resp, body) => {
-                    if (err || resp.statusCode >= 400 || !body) {
-                        this.log.error(err);
-                        reject();
-                    }
+                })
+                    .then((resp) => {
+                        const body = resp.data;
 
-                    try {
-                        const dpStart = body.indexOf("DataPointId=") + 12;
-                        const dpEnd = body.indexOf("&", dpStart);
-                        this.dataPointId = parseInt(body.substring(dpStart, dpEnd));
-                        if (isNaN(this.dataPointId)) {
-                            this.log.info("No dataPointid found maybe remote command are not working use customBefehl");
+                        this.log.debug("Switched to Fachmann");
+                        this.log.debug(body);
+                        if (
+                            body.indexOf('Object moved to <a href="https://www.wemportal.com/Web/Default.aspx"') !== -1
+                        ) {
+                            return;
                         }
-                        const dom = new JSDOM(body);
-                        const form = {};
-                        for (const formElement of dom.window.document.querySelectorAll("input")) {
-                            if (formElement.type === "hidden") {
-                                //form += formElement.name + "=" + formElement.value + "&";
-                                form[formElement.name] = formElement.value;
-                            }
-                        }
-                        form["__EVENTTARGET"] = "ctl00$SubMenuControl1$subMenu";
-                        form["__EVENTARGUMENT"] = "3";
-                        form["ctl00_SubMenuControl1_subMenu_ClientState"] =
-                            '{"logEntries":[{"Type":3},{"Type":1,"Index":"0","Data":{"text":"Übersicht","value":"110"}},{"Type":1,"Index":"1","Data":{"text":"Anlage:","value":""}},{"Type":1,"Index":"2","Data":{"text":"Benutzer","value":"222"}},{"Type":1,"Index":"3","Data":{"text":"Fachmann","value":"223","selected":true}},{"Type":1,"Index":"4","Data":{"text":"Statistik","value":"225"}},{"Type":1,"Index":"5","Data":{"text":"Datenlogger","value":"224"}}],"selectedItemIndex":"3"}';
-                        request.post(
-                            {
-                                url: "https://www.wemportal.com/Web/Default.aspx",
-                                headers: {
-                                    "Accept-Language": "en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6",
-                                    "Accept-Encoding": "gzip, deflate, br",
-                                    "User-Agent":
-                                        "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
-                                    Accept: "*/*",
-                                    "Content-Type": "application/x-www-form-urlencoded",
-                                },
-                                form: form,
-                                gzip: true,
-                                jar: this.jar,
-                                followAllRedirects: false,
-                            },
-                            (err, resp, body) => {
-                                if (err || resp.statusCode >= 400 || !body) {
-                                    this.log.error(err);
-                                    reject();
-                                } else {
-                                    try {
-                                        this.log.debug("Switched to Fachmann");
-                                        this.log.debug(body);
-                                        if (
-                                            body.indexOf(
-                                                'Object moved to <a href="https://www.wemportal.com/Web/Default.aspx"',
-                                            ) !== -1
-                                        ) {
-                                            resolve();
-                                        }
-                                    } catch (error) {
-                                        this.log.error(error);
-                                        reject();
-                                    }
-                                }
-                            },
-                        );
-                    } catch (error) {
+                        this.log.error("Switch to Fachmann failed");
+                    })
+                    .catch((error) => {
                         this.log.error(error);
-                        this.log.error(error.stack);
-                        reject();
-                    }
-                },
-            );
-        });
+                        error.resp && this.log.error(error.resp.data);
+                    });
+            })
+            .catch((error) => {
+                this.log.error(error);
+                error.resp && this.log.error(error.resp.data);
+            });
     }
 
     switchState(url, value, baseValue) {
-        return new Promise((resolve, reject) => {
-            request.get(
-                {
+        this.requestClient({
+            method: "get",
+            url: url,
+            headers: {
+                "Accept-Language": "en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6",
+                "Accept-Encoding": "gzip, deflate, br",
+                "User-Agent": "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
+                Accept: "*/*",
+            },
+        })
+            .then((resp) => {
+                const body = resp.data;
+
+                this.log.debug(body);
+                const dom = new JSDOM(body);
+                let form = {};
+
+                for (const formElement of dom.window.document.querySelectorAll("input")) {
+                    if (formElement.type === "hidden") {
+                        form[formElement.name] = formElement.value;
+                    }
+                }
+                let state = 0; // Standby
+                if (baseValue) {
+                    state = baseValue;
+                }
+                state += value;
+                let valueID = "ctl00$DialogContent$ddlNewValue";
+                if (
+                    dom.window.document.querySelector(".ParameterDetailNewValue") &&
+                    dom.window.document.querySelector(".ParameterDetailNewValue").id
+                ) {
+                    valueID = dom.window.document.querySelector(".ParameterDetailNewValue").name;
+                }
+                form[valueID] = state;
+                form["ctl00$TSMeControlNetDialog"] =
+                    "ctl00$ctl00$DialogContent$DivDialogPanel|ctl00$DialogContent$BtnSave";
+                form["__EVENTTARGET"] = "ctl00$DialogContent$BtnSave";
+                this.requestClient({
+                    method: "post",
                     url: url,
                     headers: {
                         "Accept-Language": "en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6",
@@ -247,347 +247,272 @@ class WeishauptWem extends utils.Adapter {
                         "User-Agent":
                             "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
                         Accept: "*/*",
+                        "Content-Type": "application/x-www-form-urlencoded",
                     },
-                    gzip: true,
-                    jar: this.jar,
-                    followAllRedirects: true,
-                },
-                (err, resp, body) => {
-                    if (err || resp.statusCode >= 400 || !body) {
-                        this.log.error("Get Command Error");
-                        this.log.error(err);
-                        this.log.error(body);
-                        resolve();
-                    }
+                })
+                    .then((resp) => {
+                        const body = resp.data;
 
-                    try {
-                        this.log.debug(body);
-                        const dom = new JSDOM(body);
-                        let form = {};
-
-                        for (const formElement of dom.window.document.querySelectorAll("input")) {
-                            if (formElement.type === "hidden") {
-                                form[formElement.name] = formElement.value;
+                        try {
+                            if (body.includes('moved to <a href="/Web/Login.aspx"')) {
+                                this.log.error("Login expired");
                             }
+                            this.log.debug(body);
+                        } catch (error) {
+                            this.log.error("Post Receive Error");
+                            this.log.error(body);
+                            this.log.error(error);
                         }
-                        let state = 0; // Standby
-                        if (baseValue) {
-                            state = baseValue;
-                        }
-                        state += value;
-                        let valueID = "ctl00$DialogContent$ddlNewValue";
-                        if (
-                            dom.window.document.querySelector(".ParameterDetailNewValue") &&
-                            dom.window.document.querySelector(".ParameterDetailNewValue").id
-                        ) {
-                            valueID = dom.window.document.querySelector(".ParameterDetailNewValue").name;
-                        }
-                        form[valueID] = state;
-                        form["ctl00$TSMeControlNetDialog"] =
-                            "ctl00$ctl00$DialogContent$DivDialogPanel|ctl00$DialogContent$BtnSave";
-                        form["__EVENTTARGET"] = "ctl00$DialogContent$BtnSave";
-                        request.post(
-                            {
-                                url: url,
-                                headers: {
-                                    "Accept-Language": "en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6",
-                                    "Accept-Encoding": "gzip, deflate, br",
-                                    "User-Agent":
-                                        "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
-                                    Accept: "*/*",
-                                    "Content-Type": "application/x-www-form-urlencoded",
-                                },
-                                form: form,
-                                gzip: true,
-                                jar: this.jar,
-                                followAllRedirects: false,
-                            },
-                            (err, resp, body) => {
-                                if (err || resp.statusCode >= 400 || !body) {
-                                    this.log.error("Post Command Error");
-                                    this.log.error("form sended: " + JSON.stringify(form));
-                                    this.log.error(resp.statusCode);
-                                    this.log.error(err);
-                                    this.log.error(body);
-                                    resolve();
-                                    return;
-                                } else {
-                                    try {
-                                        if (body.includes('moved to <a href="/Web/Login.aspx"')) {
-                                            this.log.error("Login expired");
-                                        }
-                                        this.log.debug(body);
-                                        resolve();
-                                    } catch (error) {
-                                        this.log.error("Post Receive Error");
-                                        this.log.error(body);
-                                        this.log.error(error);
-                                        resolve();
-                                    }
-                                }
-                            },
-                        );
-                    } catch (error) {
-                        this.log.error("Switch State Error");
+                    })
+                    .catch((error) => {
                         this.log.error(error);
-                        this.log.error(error.stack);
-                        resolve();
-                    }
-                },
-            );
-        });
+                        error.resp && this.log.error(error.resp.data);
+                    });
+            })
+            .catch((error) => {
+                this.log.error(error);
+                error.resp && this.log.error(error.resp.data);
+            });
     }
     getStatus() {
-        return new Promise((resolve, reject) => {
-            this.log.debug("getHomesStatus");
-            request.get(
-                {
-                    url: "https://www.wemportal.com/Web/Default.aspx",
-                    headers: {
-                        "Accept-Language": "en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6",
-                        "Accept-Encoding": "gzip, deflate, br",
-                        "User-Agent":
-                            "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
-                        Accept: "*/*",
-                    },
-                    gzip: true,
-                    jar: this.jar,
-                    followAllRedirects: true,
-                },
-                (err, resp, body) => {
-                    if (err || resp.statusCode >= 400 || !body) {
-                        err && this.log.error(err);
-                        resp && this.log.error(resp.statusCode.toString());
-                        body && this.log.error(body);
-                        reject();
-                        return;
-                    }
-                    try {
-                        const dom = new JSDOM(body);
-                        let statusCount = 0;
-                        const form = {};
+        this.log.debug("getHomesStatus");
+        this.requestClient({
+            method: "get",
+            url: "https://www.wemportal.com/Web/Default.aspx",
+            headers: {
+                "Accept-Language": "en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6",
+                "Accept-Encoding": "gzip, deflate, br",
+                "User-Agent": "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.29 Safari/537.36",
+                Accept: "*/*",
+            },
+        })
+            .then((resp) => {
+                const body = resp.data;
 
-                        const deviceInfo = dom.window.document
-                            .querySelector(".DeviceInfo")
-                            .textContent.replace(/\./g, "");
-                        this.log.debug(deviceInfo);
-                        this.setObjectNotExists(deviceInfo, {
-                            type: "device",
-                            common: {
-                                name: deviceInfo,
-                                role: "indicator",
-                                type: "mixed",
-                                write: false,
-                                read: true,
-                            },
-                            native: {},
-                        });
+                try {
+                    const dom = new JSDOM(body);
+                    let statusCount = 0;
+                    const form = {};
 
-                        this.setObjectNotExists(deviceInfo + ".remote", {
-                            type: "state",
-                            common: {
-                                name: "Steuerung der Anlage",
-                                role: "indicator",
-                                type: "mixed",
-                                write: false,
-                                read: true,
-                            },
-                            native: {},
-                        });
+                    const deviceInfo = dom.window.document.querySelector(".DeviceInfo").textContent.replace(/\./g, "");
+                    this.log.debug(deviceInfo);
+                    this.setObjectNotExists(deviceInfo, {
+                        type: "device",
+                        common: {
+                            name: deviceInfo,
+                            role: "indicator",
+                            type: "mixed",
+                            write: false,
+                            read: true,
+                        },
+                        native: {},
+                    });
 
-                        this.setObjectNotExists(deviceInfo + ".remote.Systembetriebsart", {
-                            type: "state",
-                            common: {
-                                name: "Systembetriebsart 0 Aus, 1 Standby, 2 Sommer, 3 Auto",
-                                role: "indicator",
-                                type: "number",
-                                write: true,
-                                read: true,
-                            },
-                            native: {},
-                        });
+                    this.setObjectNotExists(deviceInfo + ".remote", {
+                        type: "state",
+                        common: {
+                            name: "Steuerung der Anlage",
+                            role: "indicator",
+                            type: "mixed",
+                            write: false,
+                            read: true,
+                        },
+                        native: {},
+                    });
 
-                        this.setObjectNotExists(deviceInfo + ".remote.Heizkreisbetriebsart", {
-                            type: "state",
-                            common: {
-                                name: "Systembetriebsart 0 Standby, 1 Zeit 1, 2 Zeit 2, ...",
-                                role: "indicator",
-                                type: "number",
-                                write: true,
-                                read: true,
-                            },
-                            native: {},
-                        });
+                    this.setObjectNotExists(deviceInfo + ".remote.Systembetriebsart", {
+                        type: "state",
+                        common: {
+                            name: "Systembetriebsart 0 Aus, 1 Standby, 2 Sommer, 3 Auto",
+                            role: "indicator",
+                            type: "number",
+                            write: true,
+                            read: true,
+                        },
+                        native: {},
+                    });
 
-                        this.setObjectNotExists(deviceInfo + ".remote.Pumpebetriebsart", {
-                            type: "state",
-                            common: {
-                                name: "Pumpebetriebsart 0 Leistungs, 4 Volumen, 5 Prop 1, ...",
-                                role: "indicator",
-                                type: "number",
-                                write: true,
-                                read: true,
-                            },
-                            native: {},
-                        });
+                    this.setObjectNotExists(deviceInfo + ".remote.Heizkreisbetriebsart", {
+                        type: "state",
+                        common: {
+                            name: "Systembetriebsart 0 Standby, 1 Zeit 1, 2 Zeit 2, ...",
+                            role: "indicator",
+                            type: "number",
+                            write: true,
+                            read: true,
+                        },
+                        native: {},
+                    });
 
-                        this.setObjectNotExists(deviceInfo + ".remote.RaumKomfortTemp", {
-                            type: "state",
-                            common: {
-                                name: "RaumKomfortTemp",
-                                role: "indicator",
-                                type: "number",
-                                write: true,
-                                read: true,
-                            },
-                            native: {},
-                        });
-                        this.setObjectNotExists(deviceInfo + ".remote.RaumNormalTemp", {
-                            type: "state",
-                            common: {
-                                name: "RaumNormalTemp",
-                                role: "indicator",
-                                type: "number",
-                                write: true,
-                                read: true,
-                            },
-                            native: {},
-                        });
-                        this.setObjectNotExists(deviceInfo + ".remote.RaumAbsenkTemp", {
-                            type: "state",
-                            common: {
-                                name: "RaumAbsenkTemp",
-                                role: "indicator",
-                                type: "number",
-                                write: true,
-                                read: true,
-                            },
-                            native: {},
-                        });
-                        this.setObjectNotExists(deviceInfo + ".remote.WWSollNormal", {
-                            type: "state",
-                            common: {
-                                name: "WWSollNormal",
-                                role: "indicator",
-                                type: "number",
-                                write: true,
-                                read: true,
-                            },
-                            native: {},
-                        });
-                        this.setObjectNotExists(deviceInfo + ".remote.WWSollAbsenk", {
-                            type: "state",
-                            common: {
-                                name: "WWSollAbsenk",
-                                role: "indicator",
-                                type: "number",
-                                write: true,
-                                read: true,
-                            },
-                            native: {},
-                        });
-                        this.setObjectNotExists(deviceInfo + ".remote.WWPush", {
-                            type: "state",
-                            common: {
-                                name: "WWPush",
-                                role: "indicator",
-                                type: "number",
-                                write: true,
-                                read: true,
-                            },
-                            native: {},
-                        });
+                    this.setObjectNotExists(deviceInfo + ".remote.Pumpebetriebsart", {
+                        type: "state",
+                        common: {
+                            name: "Pumpebetriebsart 0 Leistungs, 4 Volumen, 5 Prop 1, ...",
+                            role: "indicator",
+                            type: "number",
+                            write: true,
+                            read: true,
+                        },
+                        native: {},
+                    });
 
-                        this.setObjectNotExists(deviceInfo + ".remote.CustomBefehl", {
-                            type: "state",
-                            common: {
-                                name: "Eingabe: https://www.wemportal.com/Web/UControls..., 208557",
-                                role: "indicator",
-                                type: "mixed",
-                                write: true,
-                                read: true,
-                            },
-                            native: {},
-                        });
-                        const status = dom.window.document.querySelector(
-                            "#ctl00_DeviceContextControl1_DeviceStatusText",
-                        ).textContent;
-                        this.setObjectNotExistsAsync(deviceInfo + ".OnlineStatus", {
-                            type: "state",
-                            common: {
-                                name: "Status",
-                                role: "indicator",
-                                type: "mixed",
-                                write: false,
-                                read: true,
-                            },
-                            native: {},
-                        }).then(() => {
-                            this.setState(deviceInfo + ".OnlineStatus", status, true);
-                        });
+                    this.setObjectNotExists(deviceInfo + ".remote.RaumKomfortTemp", {
+                        type: "state",
+                        common: {
+                            name: "RaumKomfortTemp",
+                            role: "indicator",
+                            type: "number",
+                            write: true,
+                            read: true,
+                        },
+                        native: {},
+                    });
+                    this.setObjectNotExists(deviceInfo + ".remote.RaumNormalTemp", {
+                        type: "state",
+                        common: {
+                            name: "RaumNormalTemp",
+                            role: "indicator",
+                            type: "number",
+                            write: true,
+                            read: true,
+                        },
+                        native: {},
+                    });
+                    this.setObjectNotExists(deviceInfo + ".remote.RaumAbsenkTemp", {
+                        type: "state",
+                        common: {
+                            name: "RaumAbsenkTemp",
+                            role: "indicator",
+                            type: "number",
+                            write: true,
+                            read: true,
+                        },
+                        native: {},
+                    });
+                    this.setObjectNotExists(deviceInfo + ".remote.WWSollNormal", {
+                        type: "state",
+                        common: {
+                            name: "WWSollNormal",
+                            role: "indicator",
+                            type: "number",
+                            write: true,
+                            read: true,
+                        },
+                        native: {},
+                    });
+                    this.setObjectNotExists(deviceInfo + ".remote.WWSollAbsenk", {
+                        type: "state",
+                        common: {
+                            name: "WWSollAbsenk",
+                            role: "indicator",
+                            type: "number",
+                            write: true,
+                            read: true,
+                        },
+                        native: {},
+                    });
+                    this.setObjectNotExists(deviceInfo + ".remote.WWPush", {
+                        type: "state",
+                        common: {
+                            name: "WWPush",
+                            role: "indicator",
+                            type: "number",
+                            write: true,
+                            read: true,
+                        },
+                        native: {},
+                    });
 
-                        for (const dataCell of dom.window.document.querySelectorAll(".simpleDataIconCell")) {
-                            if (dataCell.nextSibling) {
-                                const label = dataCell.nextElementSibling.textContent.trim().replace(/\./g, "");
-                                let labelWoSpaces = label.replace(/ /g, "");
-                                let value = dataCell.nextElementSibling.nextElementSibling.textContent.trim();
+                    this.setObjectNotExists(deviceInfo + ".remote.CustomBefehl", {
+                        type: "state",
+                        common: {
+                            name: "Eingabe: https://www.wemportal.com/Web/UControls..., 208557",
+                            role: "indicator",
+                            type: "mixed",
+                            write: true,
+                            read: true,
+                        },
+                        native: {},
+                    });
+                    const status = dom.window.document.querySelector(
+                        "#ctl00_DeviceContextControl1_DeviceStatusText",
+                    ).textContent;
+                    this.setObjectNotExistsAsync(deviceInfo + ".OnlineStatus", {
+                        type: "state",
+                        common: {
+                            name: "Status",
+                            role: "indicator",
+                            type: "mixed",
+                            write: false,
+                            read: true,
+                        },
+                        native: {},
+                    }).then(() => {
+                        this.setState(deviceInfo + ".OnlineStatus", status, true);
+                    });
 
-                                let valueArray = value.split(" ");
-                                if (valueArray.length === 1) {
-                                    valueArray = value.split("m");
-                                    if (valueArray[1]) {
-                                        valueArray[1] = "m" + valueArray[1];
-                                    }
-                                }
-                                valueArray[0] = valueArray[0].replace(",", ".");
-                                let unit = "";
-                                if (!isNaN(valueArray[0])) {
-                                    value = parseFloat(valueArray[0]);
-                                }
+                    for (const dataCell of dom.window.document.querySelectorAll(".simpleDataIconCell")) {
+                        if (dataCell.nextSibling) {
+                            const label = dataCell.nextElementSibling.textContent.trim().replace(/\./g, "");
+                            let labelWoSpaces = label.replace(/ /g, "");
+                            let value = dataCell.nextElementSibling.nextElementSibling.textContent.trim();
+
+                            let valueArray = value.split(" ");
+                            if (valueArray.length === 1) {
+                                valueArray = value.split("m");
                                 if (valueArray[1]) {
-                                    unit = valueArray[1];
+                                    valueArray[1] = "m" + valueArray[1];
                                 }
-                                if (labelWoSpaces === "Status") {
-                                    labelWoSpaces = labelWoSpaces + statusCount;
-                                    statusCount++;
-                                }
-                                this.setObjectNotExistsAsync(deviceInfo + "." + labelWoSpaces, {
-                                    type: "state",
-                                    common: {
-                                        name: label,
-                                        role: "indicator",
-                                        type: "mixed",
-                                        write: false,
-                                        read: true,
-                                        unit: unit,
-                                    },
-                                    native: {},
-                                }).then(() => {
-                                    this.setState(deviceInfo + "." + labelWoSpaces, value, true);
-                                });
                             }
+                            valueArray[0] = valueArray[0].replace(",", ".");
+                            let unit = "";
+                            if (!isNaN(valueArray[0])) {
+                                value = parseFloat(valueArray[0]);
+                            }
+                            if (valueArray[1]) {
+                                unit = valueArray[1];
+                            }
+                            if (labelWoSpaces === "Status") {
+                                labelWoSpaces = labelWoSpaces + statusCount;
+                                statusCount++;
+                            }
+                            this.setObjectNotExistsAsync(deviceInfo + "." + labelWoSpaces, {
+                                type: "state",
+                                common: {
+                                    name: label,
+                                    role: "indicator",
+                                    type: "mixed",
+                                    write: false,
+                                    read: true,
+                                    unit: unit,
+                                },
+                                native: {},
+                            }).then(() => {
+                                this.setState(deviceInfo + "." + labelWoSpaces, value, true);
+                            });
                         }
-                        resolve();
-                    } catch (error) {
-                        this.log.error(error);
-                        this.log.error(error.stack);
-                        this.log.debug(body);
-                        this.log.error("Not able to parse device name and status try to relogin");
-                        this.setState("info.connection", false, true);
-                        this.login().then(() => {
-                            this.log.debug("Login successful");
-                            this.setState("info.connection", true, true);
-                            this.switchFachmann().then(() => {
-                                this.getStatus().catch(() => {
-                                    this.log.error("Failed to get status");
-                                });
+                    }
+                } catch (error) {
+                    this.log.error(error);
+                    this.log.error(error.stack);
+                    this.log.debug(body);
+                    this.log.error("Not able to parse device name and status try to relogin");
+                    this.setState("info.connection", false, true);
+                    this.login().then(() => {
+                        this.log.debug("Login successful");
+                        this.setState("info.connection", true, true);
+                        this.switchFachmann().then(() => {
+                            this.getStatus().catch(() => {
+                                this.log.error("Failed to get status");
                             });
                         });
-                        reject();
-                    }
-                },
-            );
-        });
+                    });
+                }
+            })
+            .catch((error) => {
+                this.log.error(error);
+                error.resp && this.log.error(error.resp.statusCode);
+            });
     }
 
     /**

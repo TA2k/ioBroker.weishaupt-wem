@@ -6,11 +6,12 @@
     "bugs": {
         "url": "https://github.com/ta2k/ioBroker.weishaupt-wem/issues"
     },
-    "bundleDependencies": [],
     "dependencies": {
         "@iobroker/adapter-core": "^2.6.7",
+        "axios": "^1.3.2",
+        "http-cookie-agent": "^5.0.2",
         "jsdom": "^21.1.0",
-        "request": "^2.88.2"
+        "tough-cookie": "^4.1.2"
     },
     "deprecated": false,
     "description": "Adapter for weishaupt WEM Portal",
