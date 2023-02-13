@@ -1,8 +1,12 @@
 {
     "common": {
         "name": "weishaupt-wem",
-        "version": "0.0.13",
+        "version": "0.0.14",
         "news": {
+            "0.0.14": {
+                "en": "fix command send",
+                "de": "Befehle senden gefixt"
+            },
             "0.0.13": {
                 "en": "update dependencies"
             },
