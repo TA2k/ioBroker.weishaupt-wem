@@ -61,7 +61,6 @@ class WeishauptWem extends utils.Adapter {
         // Reset the connection indicator during startup
         await this.login();
         await this.switchFachmann();
-        this.log.info("Switched to Fachmann");
         await this.getStatus();
 
         this.updateInterval = setInterval(() => {
@@ -176,9 +175,9 @@ class WeishauptWem extends utils.Adapter {
                     .then((resp) => {
                         const body = resp.data;
 
-                        this.log.debug("Switched to Fachmann");
                         this.log.debug(body);
                         if (resp.config.url === "https://www.wemportal.com/Web/Default.aspx") {
+                            this.log.info("Switched to Fachmann");
                             return;
                         }
                         this.log.error("Switch to Fachmann failed");
@@ -449,7 +448,10 @@ class WeishauptWem extends utils.Adapter {
                     }).then(() => {
                         this.setState(deviceInfo + ".OnlineStatus", status, true);
                     });
-
+                    if (!body.includes("simpleDataIconCell")) {
+                        this.log.warn("No data available");
+                        return;
+                    }
                     for (const dataCell of dom.window.document.querySelectorAll(".simpleDataIconCell")) {
                         if (dataCell.nextSibling) {
                             const label = dataCell.nextElementSibling.textContent.trim().replace(/\./g, "");
