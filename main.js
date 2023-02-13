@@ -84,6 +84,7 @@ class WeishauptWem extends utils.Adapter {
             },
         })
             .then(async (resp) => {
+                this.log.info("Login page loaded");
                 const dom = new JSDOM(resp.data);
                 const form = {};
                 for (const formElement of dom.window.document.querySelectorAll("input")) {
