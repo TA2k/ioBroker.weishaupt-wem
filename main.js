@@ -22,6 +22,7 @@ const tough = require("tough-cookie");
 const { HttpsCookieAgent } = require("http-cookie-agent/http");
 
 const jsdom = require("jsdom");
+const json2iob = require("json2iob");
 const { JSDOM } = jsdom;
 class WeishauptWem extends utils.Adapter {
     /**
@@ -49,6 +50,8 @@ class WeishauptWem extends utils.Adapter {
         this.refreshTokenInterval = null;
         this.updateInterval = null;
         this.dataPointId = 0;
+        this.deviceArray = [];
+        this.json2iob = new json2iob(this);
     }
 
     /**
@@ -59,15 +62,245 @@ class WeishauptWem extends utils.Adapter {
 
         this.setState("info.connection", false, true);
         // Reset the connection indicator during startup
+
         await this.login();
         await this.switchFachmann();
+        this.log.info("Switched to Fachmann");
         await this.getStatus();
+        this.log.info("Start App Login");
+        const isLoggedInApp = await this.loginApp();
+        if (isLoggedInApp) {
+            await this.getAppDevices();
+            await this.getParameters();
+            await this.getAppStatus();
+        }
 
         this.updateInterval = setInterval(() => {
             this.getStatus();
+            this.getAppStatus();
         }, this.config.interval * 60 * 1000);
 
         this.subscribeStates("*");
+    }
+
+    async loginApp() {
+        return await this.requestClient({
+            method: "post",
+            maxBodyLength: Infinity,
+            url: "https://www.wemportal.com/app/Account/Login",
+            headers: {
+                "Content-Type": "application/json",
+                "X-Api-Version": "2.0.0.0",
+                Accept: "application/json",
+                "User-Agent": "WeishauptWEMApp",
+                "Accept-Language": "de-de",
+                Connection: "keep-alive",
+            },
+            data: {
+                AppVersion: "2.3",
+                PasswordUTF8: this.config.password,
+                AppID: "de.weishaupt.wemapp",
+                ClientOS: "iOS",
+                Name: this.config.user,
+            },
+        })
+            .then((resp) => {
+                this.log.debug(resp.data);
+                if (resp && resp.data.Status === 0) {
+                    this.log.info("App Login successful");
+                    return true;
+                } else {
+                    this.log.error(JSON.stringify(resp.data));
+                    this.log.error("App Login failed");
+                }
+            })
+            .catch((error) => {
+                this.log.error(error);
+                error.response && this.log.error(error.response.data);
+            });
+    }
+    async getAppDevices() {
+        await this.requestClient({
+            method: "get",
+            maxBodyLength: Infinity,
+            url: "https://www.wemportal.com/app/Device/Read",
+            headers: {
+                "Content-Type": "application/json",
+                "X-Api-Version": "2.0.0.0",
+                Accept: "application/json",
+                "User-Agent": "WeishauptWEMApp",
+                "Accept-Language": "de-de",
+                Connection: "keep-alive",
+            },
+        })
+            .then(async (res) => {
+                this.log.debug(res.data);
+                this.log.info(`Found ${res.data.Devices.length} devices`);
+                for (const device of res.data.Devices) {
+                    const id = device.ID.toString();
+
+                    this.deviceArray.push(device);
+                    const name = device.Name;
+
+                    await this.setObjectNotExistsAsync(id, {
+                        type: "device",
+                        common: {
+                            name: name + " via App",
+                        },
+                        native: {},
+                    });
+                    await this.setObjectNotExistsAsync(id + ".remote", {
+                        type: "channel",
+                        common: {
+                            name: "Remote Controls",
+                        },
+                        native: {},
+                    });
+
+                    const remoteArray = [{ command: "Refresh", name: "True = Refresh" }];
+                    remoteArray.forEach((remote) => {
+                        this.setObjectNotExists(id + ".remote." + remote.command, {
+                            type: "state",
+                            common: {
+                                name: remote.name || "",
+                                type: remote.type || "boolean",
+                                role: remote.role || "boolean",
+                                def: remote.def || false,
+                                write: true,
+                                read: true,
+                            },
+                            native: {},
+                        });
+                    });
+                    this.json2iob.parse(id, device, { preferedArrayName: "Index+Type", preferedArrayDesc: "Name" });
+                }
+            })
+            .catch((error) => {
+                this.log.error(error);
+                error.response && this.log.error(error.response.data);
+            });
+    }
+    async getParameters() {
+        for (const device of this.deviceArray) {
+            for (const modules of device.Modules) {
+                this.log.debug(`Fetch Status for ${device.Name} - ${modules.Name} (${modules.Type})`);
+                if (modules.Name === "System " || modules.Name === "Test") {
+                    continue;
+                }
+                await this.requestClient({
+                    method: "post",
+                    maxBodyLength: Infinity,
+                    url: "https://www.wemportal.com/app/EventType/Read",
+                    headers: {
+                        Host: "www.wemportal.com",
+                        "Content-Type": "application/json",
+                        "X-Api-Version": "2.0.0.0",
+                        Accept: "application/json",
+                        "User-Agent": "WeishauptWEMApp",
+                        "Accept-Language": "de-de",
+                        Connection: "keep-alive",
+                    },
+                    data: {
+                        DeviceID: device.ID,
+                        ModuleType: modules.Type,
+                        ModuleIndex: modules.Index,
+                    },
+                })
+                    .then((res) => {
+                        this.log.debug(res.data);
+                        modules.parameters = res.data.Parameters;
+                        this.log.info(
+                            `Found ${res.data.Parameters.length} parameters for ${device.Name} - ${modules.Name} (${modules.Type})`,
+                        );
+                        this.json2iob.parse(
+                            device.ID + "." + modules.Index + "-" + modules.Type + ".parameters",
+                            res.data,
+                            {
+                                preferedArrayDesc: "Name",
+                                preferedArrayName: "ParameterID",
+                                channelName: "Parameters of the Module",
+                            },
+                        );
+                    })
+                    .catch((error) => {
+                        this.log.error(error);
+                        error.response && this.log.error(error.response.data);
+                    });
+            }
+        }
+    }
+    async getAppStatus() {
+        let requestData = {};
+        for (const device of this.deviceArray) {
+            requestData = { DeviceID: device.ID, Modules: [] };
+            for (const modules of device.Modules) {
+                if (modules.Name.trim() === "System" || modules.Name.trim() === "Test") {
+                    continue;
+                }
+                const moduleObject = { ModuleType: modules.Type, ModuleIndex: modules.Index, Parameters: [] };
+
+                for (const parameter of modules.parameters) {
+                    this.log.debug(
+                        `Fetch Status for ${device.Name} - ${modules.Name} (${modules.Type}) - ${parameter.Name}`,
+                    );
+                    moduleObject.Parameters.push({ ParameterID: parameter.ParameterID });
+                }
+                requestData.Modules.push(moduleObject);
+            }
+            this.log.debug(requestData);
+            //Refresh
+            await this.requestClient({
+                method: "post",
+                url: "https://www.wemportal.com/app/DataAccess/Refresh",
+                headers: {
+                    Host: "www.wemportal.com",
+                    "Content-Type": "application/json",
+                    "X-Api-Version": "2.0.0.0",
+                    Accept: "application/json",
+                    "User-Agent": "WeishauptWEMApp",
+                    "Accept-Language": "de-de",
+                    Connection: "keep-alive",
+                },
+                data: requestData,
+            })
+                .then((res) => {
+                    this.log.debug(res.data);
+                })
+                .catch((error) => {
+                    this.log.error(error);
+                    error.response && this.log.error(JSON.stringify(error.response.data));
+                });
+            //Read
+            await this.requestClient({
+                method: "post",
+                maxBodyLength: Infinity,
+                url: "https://www.wemportal.com/app/DataAccess/Read",
+                headers: {
+                    Host: "www.wemportal.com",
+                    "Content-Type": "application/json",
+                    "X-Api-Version": "2.0.0.0",
+                    Accept: "application/json",
+                    "User-Agent": "WeishauptWEMApp",
+                    "Accept-Language": "de-de",
+                    Connection: "keep-alive",
+                },
+                data: requestData,
+            })
+                .then((res) => {
+                    this.log.debug(res.data);
+                    for (const modules of res.data.Modules) {
+                        this.json2iob.parse(
+                            device.ID + "." + modules.ModuleIndex + "-" + modules.ModuleType + ".parameters",
+                            modules.Values,
+                            { write: true, preferedArrayName: "ParameterID" },
+                        );
+                    }
+                })
+                .catch((error) => {
+                    this.log.error(error);
+                    error.response && this.log.error(JSON.stringify(error.response.data));
+                });
+        }
     }
 
     async login() {
@@ -84,7 +317,6 @@ class WeishauptWem extends utils.Adapter {
             },
         })
             .then(async (resp) => {
-                this.log.info("Login page loaded");
                 const dom = new JSDOM(resp.data);
                 const form = {};
                 for (const formElement of dom.window.document.querySelectorAll("input")) {
@@ -176,9 +408,9 @@ class WeishauptWem extends utils.Adapter {
                     .then((resp) => {
                         const body = resp.data;
 
+                        this.log.debug("Switched to Fachmann");
                         this.log.debug(body);
                         if (resp.config.url === "https://www.wemportal.com/Web/Default.aspx") {
-                            this.log.info("Switched to Fachmann");
                             return;
                         }
                         this.log.error("Switch to Fachmann failed");
@@ -449,10 +681,7 @@ class WeishauptWem extends utils.Adapter {
                     }).then(() => {
                         this.setState(deviceInfo + ".OnlineStatus", status, true);
                     });
-                    if (!body.includes("simpleDataIconCell")) {
-                        this.log.warn("No data available");
-                        return;
-                    }
+
                     for (const dataCell of dom.window.document.querySelectorAll(".simpleDataIconCell")) {
                         if (dataCell.nextSibling) {
                             const label = dataCell.nextElementSibling.textContent.trim().replace(/\./g, "");
@@ -534,12 +763,13 @@ class WeishauptWem extends utils.Adapter {
      * @param {string} id
      * @param {ioBroker.State | null | undefined} state
      */
-    onStateChange(id, state) {
+    async onStateChange(id, state) {
         if (state) {
             if (!state.ack) {
                 // const deviceId = id.split(".")[2];
                 if (id.indexOf("remote") !== -1) {
                     const action = id.split(".")[4];
+
                     if (action === "Systembetriebsart") {
                         if (isNaN(this.dataPointId)) {
                             this.switchState(
@@ -691,6 +921,59 @@ class WeishauptWem extends utils.Adapter {
                             );
                         }
                     }
+                }
+                if (id.indexOf(".parameters.") !== -1) {
+                    const deviceId = id.split(".")[2];
+                    const modulesId = id.split(".")[3];
+                    const moduleIndex = modulesId.split("-")[0];
+                    const moduleType = modulesId.split("-")[1];
+                    const parameterId = id.split(".")[5];
+                    const parameterType = id.split(".")[6];
+                    const requestData = {
+                        DeviceID: deviceId,
+                        Modules: [
+                            {
+                                ModuleIndex: moduleIndex,
+                                ModuleType: moduleType,
+                                Parameters: [
+                                    {
+                                        NumericValue: null,
+                                        ParameterID: parameterId,
+                                        StringValue: "",
+                                    },
+                                ],
+                            },
+                        ],
+                    };
+
+                    if (parameterType === "NumericValue") {
+                        requestData.Modules[0].Parameters[0].NumericValue = state.val;
+                    } else {
+                        requestData.Modules[0].Parameters[0].StringValue = state.val;
+                    }
+                    await this.requestClient({
+                        method: "post",
+                        maxBodyLength: Infinity,
+                        url: "https://www.wemportal.com/app/DataAccess/Write",
+                        headers: {
+                            Host: "www.wemportal.com",
+                            "Content-Type": "application/json",
+                            "X-Api-Version": "2.0.0.0",
+
+                            Accept: "application/json",
+                            "User-Agent": "WeishauptWEMApp",
+                            "Accept-Language": "de-de",
+                            Connection: "keep-alive",
+                        },
+                        data: requestData,
+                    })
+                        .then((response) => {
+                            this.log.info(JSOn.stringify(response.data));
+                        })
+                        .catch((error) => {
+                            this.log.error(error);
+                            error.response && this.log.error(JSON.stringify(error.response.data));
+                        });
                 }
             }
         } else {
