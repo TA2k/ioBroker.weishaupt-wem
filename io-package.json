@@ -1,9 +1,9 @@
 {
     "common": {
         "name": "weishaupt-wem",
-        "version": "0.0.14",
+        "version": "0.0.15",
         "news": {
-            "0.0.14": {
+            "0.0.15": {
                 "en": "fix command send",
                 "de": "Befehle senden gefixt"
             },
@@ -104,6 +104,7 @@
         "user": "",
         "password": "",
         "sessionid": "",
+        "useApp": false,
         "interval": 15
     },
     "objects": [],

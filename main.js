@@ -67,17 +67,21 @@ class WeishauptWem extends utils.Adapter {
         await this.switchFachmann();
         this.log.info("Switched to Fachmann");
         await this.getStatus();
-        this.log.info("Start App Login");
-        const isLoggedInApp = await this.loginApp();
-        if (isLoggedInApp) {
-            await this.getAppDevices();
-            await this.getParameters();
-            await this.getAppStatus();
+        if (this.config.useApp) {
+            this.log.info("Start App Login");
+            const isLoggedInApp = await this.loginApp();
+            if (isLoggedInApp) {
+                await this.getAppDevices();
+                await this.getParameters();
+                await this.getAppStatus();
+            }
         }
-
         this.updateInterval = setInterval(() => {
             this.getStatus();
-            this.getAppStatus();
+
+            if (this.config.useApp) {
+                this.getAppStatus();
+            }
         }, this.config.interval * 60 * 1000);
 
         this.subscribeStates("*");
