@@ -187,7 +187,7 @@ class WeishauptWem extends utils.Adapter {
     async getParameters() {
         for (const device of this.deviceArray) {
             for (const modules of device.Modules) {
-                this.log.debug(`Fetch Status for ${device.Name} - ${modules.Name} (${modules.Type})`);
+                this.log.debug(`App Fetch Status for ${device.Name} - ${modules.Name} (${modules.Type})`);
                 if (modules.Name === "System " || modules.Name === "Test") {
                     continue;
                 }
@@ -272,6 +272,7 @@ class WeishauptWem extends utils.Adapter {
                     this.log.debug(res.data);
                 })
                 .catch((error) => {
+                    this.log.error(`App Failed to Refresh`);
                     this.log.error(error);
                     error.response && this.log.error(JSON.stringify(error.response.data));
                 });
@@ -302,6 +303,7 @@ class WeishauptWem extends utils.Adapter {
                     }
                 })
                 .catch((error) => {
+                    this.log.error(`App Failed to Read`);
                     this.log.error(error);
                     error.response && this.log.error(JSON.stringify(error.response.data));
                 });
@@ -712,6 +714,7 @@ class WeishauptWem extends utils.Adapter {
                                 labelWoSpaces = labelWoSpaces + statusCount;
                                 statusCount++;
                             }
+                            this.log.debug(`Found ${label} with value ${value} and unit ${unit} `);
                             this.setObjectNotExistsAsync(deviceInfo + "." + labelWoSpaces, {
                                 type: "state",
                                 common: {
