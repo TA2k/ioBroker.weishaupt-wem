@@ -138,8 +138,8 @@ class WeishauptWem extends utils.Adapter {
             },
         })
             .then(async (res) => {
-                this.log.debug(res.data);
-                this.log.info(`Found ${res.data.Devices.length} devices`);
+                this.log.debug(JSON.stringify(res.data));
+                this.log.info(`App Found ${res.data.Devices.length} devices`);
                 for (const device of res.data.Devices) {
                     const id = device.ID.toString();
 
@@ -227,8 +227,9 @@ class WeishauptWem extends utils.Adapter {
                         );
                     })
                     .catch((error) => {
+                        this.log.error(`Failed for ${device.Name} - ${modules.Name} (${modules.Type})`);
                         this.log.error(error);
-                        error.response && this.log.error(error.response.data);
+                        error.response && this.log.error(JSON.stringify(error.response.data));
                     });
             }
         }
@@ -251,7 +252,7 @@ class WeishauptWem extends utils.Adapter {
                 }
                 requestData.Modules.push(moduleObject);
             }
-            this.log.debug(requestData);
+            this.log.debug(JSON.stringify(requestData));
             //Refresh
             await this.requestClient({
                 method: "post",
