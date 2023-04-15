@@ -65,7 +65,6 @@ class WeishauptWem extends utils.Adapter {
 
         await this.login();
         await this.switchFachmann();
-        this.log.info("Switched to Fachmann");
         await this.getStatus();
         if (this.config.useApp) {
             this.log.info("Start App Login");
@@ -402,6 +401,7 @@ class WeishauptWem extends utils.Adapter {
                 form["ctl00_SubMenuControl1_subMenu_ClientState"] =
                     '{"logEntries":[{"Type":3},{"Type":1,"Index":"0","Data":{"text":"Übersicht","value":"110"}},{"Type":1,"Index":"1","Data":{"text":"Anlage:","value":""}},{"Type":1,"Index":"2","Data":{"text":"Benutzer","value":"222"}},{"Type":1,"Index":"3","Data":{"text":"Fachmann","value":"223","selected":true}},{"Type":1,"Index":"4","Data":{"text":"Statistik","value":"225"}},{"Type":1,"Index":"5","Data":{"text":"Datenlogger","value":"224"}}],"selectedItemIndex":"3"}';
                 await this.requestClient({
+                    method: "post",
                     url: "https://www.wemportal.com/Web/Default.aspx",
                     headers: {
                         "Accept-Language": "en-US,en;q=0.9,de-DE;q=0.8,de;q=0.7,lb;q=0.6",
@@ -413,18 +413,21 @@ class WeishauptWem extends utils.Adapter {
                     },
                     withCredentials: true,
                     maxRedirects: 0,
+                    data: form,
                 })
                     .then((resp) => {
                         const body = resp.data;
 
-                        this.log.debug("Switched to Fachmann");
                         this.log.debug(body);
-                        if (resp.config.url === "https://www.wemportal.com/Web/Default.aspx") {
-                            return;
-                        }
+
                         this.log.error("Switch to Fachmann failed");
                     })
                     .catch((error) => {
+                        if (error.response.status === 302) {
+                            this.log.info("Switched to Fachmann");
+                            return true;
+                        }
+                        this.log.error("Switch to Fachmann failed");
                         this.log.error(error);
                         error.resp && this.log.error(error.resp.data);
                     });

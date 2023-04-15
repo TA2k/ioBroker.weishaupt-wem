@@ -4,6 +4,10 @@
         "version": "0.0.15",
         "news": {
             "0.0.15": {
+                "en": "fix Fachmann switch and app status",
+                "de": "Fachmann Switch und App Status gefixt"
+            },
+            "0.0.14": {
                 "en": "fix command send",
                 "de": "Befehle senden gefixt"
             },
@@ -104,7 +108,7 @@
         "user": "",
         "password": "",
         "sessionid": "",
-        "useApp": false,
+        "useApp": true,
         "interval": 15
     },
     "objects": [],
