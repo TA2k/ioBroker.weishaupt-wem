@@ -250,7 +250,9 @@ class WeishauptWem extends utils.Adapter {
                     );
                     moduleObject.Parameters.push({ ParameterID: parameter.ParameterID });
                 }
-                requestData.Modules.push(moduleObject);
+                if (moduleObject.Parameters.length > 0) {
+                    requestData.Modules.push(moduleObject);
+                }
             }
             this.log.debug(JSON.stringify(requestData));
             //Refresh
