@@ -536,7 +536,10 @@ class WeishauptWem extends utils.Adapter {
                     const dom = new JSDOM(body);
                     let statusCount = 0;
                     const form = {};
-
+                    if (!dom.window.document.querySelector(".DeviceInfo")) {
+                        this.log.info("No Status found");
+                        return;
+                    }
                     const deviceInfo = dom.window.document.querySelector(".DeviceInfo").textContent.replace(/\./g, "");
                     this.log.debug(deviceInfo);
                     this.setObjectNotExists(deviceInfo, {
@@ -558,6 +561,17 @@ class WeishauptWem extends utils.Adapter {
                             role: "indicator",
                             type: "mixed",
                             write: false,
+                            read: true,
+                        },
+                        native: {},
+                    });
+                    this.setObjectNotExists(deviceInfo + ".remote.refresh", {
+                        type: "state",
+                        common: {
+                            name: "Refresh",
+                            role: "button",
+                            type: "boolean",
+                            write: true,
                             read: true,
                         },
                         native: {},
@@ -780,7 +794,12 @@ class WeishauptWem extends utils.Adapter {
         if (state) {
             if (!state.ack) {
                 // const deviceId = id.split(".")[2];
-                if (id.indexOf("remote") !== -1) {
+                if (id.indexOf(".remote.refresh") !== -1) {
+                    this.getStatus();
+                    if (this.config.useApp) {
+                        this.getAppStatus();
+                    }
+                } else if (id.indexOf("remote") !== -1) {
                     const action = id.split(".")[4];
 
                     if (action === "Systembetriebsart") {
@@ -988,6 +1007,12 @@ class WeishauptWem extends utils.Adapter {
                             error.response && this.log.error(JSON.stringify(error.response.data));
                         });
                 }
+                const refrehTimeout = setTimeout(() => {
+                    this.getStatus();
+                    if (this.config.useApp) {
+                        this.getAppStatus();
+                    }
+                }, 10000);
             }
         } else {
             // The state was deleted
