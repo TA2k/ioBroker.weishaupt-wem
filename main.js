@@ -1002,7 +1002,7 @@ class WeishauptWem extends utils.Adapter {
                         data: requestData,
                     })
                         .then((response) => {
-                            this.log.info(JSOn.stringify(response.data));
+                            this.log.info(JSON.stringify(response.data));
                         })
                         .catch((error) => {
                             this.log.error(error);
