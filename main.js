@@ -538,6 +538,8 @@ class WeishauptWem extends utils.Adapter {
                     const form = {};
                     if (!dom.window.document.querySelector(".DeviceInfo")) {
                         this.log.info("No Status found");
+                        await this.login();
+                        await this.switchFachmann();
                         return;
                     }
                     const deviceInfo = dom.window.document.querySelector(".DeviceInfo").textContent.replace(/\./g, "");
