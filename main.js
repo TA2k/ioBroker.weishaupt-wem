@@ -70,6 +70,7 @@ class WeishauptWem extends utils.Adapter {
             this.log.info("Start App Login");
             const isLoggedInApp = await this.loginApp();
             if (isLoggedInApp) {
+                this.log.info("App Login successful");
                 await this.getAppDevices();
                 await this.getParameters();
                 await this.getAppStatus();
@@ -82,6 +83,10 @@ class WeishauptWem extends utils.Adapter {
                 this.getAppStatus();
             }
         }, this.config.interval * 60 * 1000);
+
+        this.refreshTokenInterval = setInterval(() => {
+            this.loginApp();
+        }, 3 * 60 * 60 * 1000);
 
         this.subscribeStates("*");
     }
@@ -110,7 +115,6 @@ class WeishauptWem extends utils.Adapter {
             .then((resp) => {
                 this.log.debug(resp.data);
                 if (resp && resp.data.Status === 0) {
-                    this.log.info("App Login successful");
                     return true;
                 } else {
                     this.log.error(JSON.stringify(resp.data));
@@ -273,6 +277,14 @@ class WeishauptWem extends utils.Adapter {
                     this.log.debug(res.data);
                 })
                 .catch((error) => {
+                    if (error.response && error.response.status === 401) {
+                        this.reLoginTimeout && clearTimeout(this.reLoginTimeout);
+                        this.reLoginTimeout = setTimeout(() => {
+                            this.log.warn("Re-Login in 5 Minutes");
+                            this.loginApp();
+                        }, 5 * 60 * 1000);
+                        return;
+                    }
                     this.log.error(`App Failed to Refresh`);
                     this.log.error(error);
                     error.response && this.log.error(JSON.stringify(error.response.data));
@@ -779,7 +791,7 @@ class WeishauptWem extends utils.Adapter {
         try {
             this.log.info("cleaned everything up...");
 
-            // clearInterval(this.refreshTokenInterval);
+            this.refreshTokenInterval && clearInterval(this.refreshTokenInterval);
             clearInterval(this.updateInterval);
             callback();
         } catch (e) {
