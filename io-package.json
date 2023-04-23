@@ -1,8 +1,12 @@
 {
     "common": {
         "name": "weishaupt-wem",
-        "version": "0.0.15",
+        "version": "0.0.16",
         "news": {
+            "0.0.16": {
+                "en": "Improve error and login handling",
+                "de": "Verbesserte Fehler- und Anmeldeverhalten"
+            },
             "0.0.15": {
                 "en": "fix Fachmann switch and app status",
                 "de": "Fachmann Switch und App Status gefixt"
