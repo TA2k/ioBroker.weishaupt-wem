@@ -778,6 +778,9 @@ class WeishauptWem extends utils.Adapter {
                 }
             })
             .catch((error) => {
+                if (error.response && error.response.status === 403) {
+                    this.login();
+                }
                 this.log.error(error);
                 error.resp && this.log.error(error.resp.statusCode);
             });
