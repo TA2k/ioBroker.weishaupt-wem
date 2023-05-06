@@ -779,6 +779,9 @@ class WeishauptWem extends utils.Adapter {
             })
             .catch((error) => {
                 if (error.response && error.response.status === 403) {
+                    this.log.info("Not allowed to fetch data, try to relogin");
+                    this.cookieJar.removeAllCookiesSync();
+
                     this.login();
                 }
                 this.log.error(error);
