@@ -64,6 +64,7 @@ class WeishauptWem extends utils.Adapter {
         // Reset the connection indicator during startup
 
         await this.login();
+        this.log.debug("Start first switchFachmann");
         await this.switchFachmann();
         await this.getStatus();
         if (this.config.useApp) {
@@ -324,6 +325,7 @@ class WeishauptWem extends utils.Adapter {
     }
 
     async login() {
+        this.log.debug("Start Webportal Login");
         await this.requestClient({
             method: "get",
 
@@ -344,6 +346,7 @@ class WeishauptWem extends utils.Adapter {
                         form[formElement.name] = formElement.value;
                     }
                 }
+                this.log.debug(`Received first Form: ${JSON.stringify(form)}`);
                 form["ctl00$content$tbxUserName"] = this.config.user;
                 form["ctl00$content$tbxPassword"] = this.config.password;
                 form["ctl00$content$btnLogin"] = "Anmelden";
@@ -361,6 +364,7 @@ class WeishauptWem extends utils.Adapter {
                     withCredentials: true,
                 })
                     .then((resp) => {
+                        this.log.debug("Received second Form:");
                         this.log.debug(resp.data);
                         if (resp.data.indexOf("ctl00_btnLogout") !== -1) {
                             this.log.info("Login successful");
@@ -371,11 +375,13 @@ class WeishauptWem extends utils.Adapter {
                         }
                     })
                     .catch((error) => {
+                        this.log.error("Failed second Login Step");
                         this.log.error(error);
                         error.resp && this.log.error(error.resp.data);
                     });
             })
             .catch((error) => {
+                this.log.error("Failed first Login Step");
                 this.log.error(error);
                 error.resp && this.log.error(error.resp.data);
             });
@@ -781,7 +787,6 @@ class WeishauptWem extends utils.Adapter {
                 if (error.response && error.response.status === 403) {
                     this.log.info("Not allowed to fetch data, try to relogin");
                     this.cookieJar.removeAllCookiesSync();
-
                     this.login();
                 }
                 this.log.error(error);
