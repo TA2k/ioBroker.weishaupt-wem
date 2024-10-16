@@ -381,7 +381,9 @@ class WeishauptWem extends utils.Adapter {
                     });
             })
             .catch((error) => {
-                this.log.error("Failed first Login Step");
+                this.log.error(
+                    "Failed first Login Step. Please check your login on https://www.wemportal.com/Web/Login.aspx",
+                );
                 this.log.error(error);
                 error.resp && this.log.error(error.resp.data);
             });

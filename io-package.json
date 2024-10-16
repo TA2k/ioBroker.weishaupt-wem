@@ -1,9 +1,9 @@
 {
     "common": {
         "name": "weishaupt-wem",
-        "version": "0.0.16",
+        "version": "0.0.17",
         "news": {
-            "0.0.16": {
+            "0.0.17": {
                 "en": "Improve error and login handling",
                 "de": "Verbesserte Fehler- und Anmeldeverhalten"
             },
