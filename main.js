@@ -384,6 +384,7 @@ class WeishauptWem extends utils.Adapter {
                 this.log.error(
                     "Failed first Login Step. Please check your login on https://www.wemportal.com/Web/Login.aspx",
                 );
+                this.log.warn("Only one device per account is supported");
                 this.log.error(error);
                 error.resp && this.log.error(error.resp.data);
             });
