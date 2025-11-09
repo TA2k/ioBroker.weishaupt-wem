@@ -85,7 +85,10 @@
         },
         "authors": ["ta2k <tombox2020@gmail.com>"],
         "keywords": ["weishaupt", "WEM", "WEM Portal"],
-        "license": "MIT",
+        "licenseInformation": {
+            "type": "free",
+            "license": "MIT"
+        },
         "platform": "Javascript/Node.js",
         "main": "main.js",
         "icon": "weishaupt-wem.png",
