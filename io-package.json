@@ -87,7 +87,6 @@
         "keywords": ["weishaupt", "WEM", "WEM Portal"],
         "license": "MIT",
         "platform": "Javascript/Node.js",
-        "main": "main.js",
         "icon": "weishaupt-wem.png",
         "enabled": true,
         "extIcon": "https://raw.githubusercontent.com/ta2k/ioBroker.weishaupt-wem/master/admin/weishaupt-wem.png",
