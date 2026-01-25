@@ -24,6 +24,7 @@
       },
     "homepage": "https://github.com/ta2k/ioBroker.weishaupt-wem",
     "keywords": [
+        "ioBroker",
         "weishaupt",
         "WEM",
         "WEM Portal"
