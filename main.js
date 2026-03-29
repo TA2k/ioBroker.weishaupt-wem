@@ -5,7 +5,7 @@
  */
 
 //disable canvas because of missing rebuild
-const Module = require("module");
+const Module = require("node:module");
 const originalRequire = Module.prototype.require;
 Module.prototype.require = function () {
     if (arguments[0] === "canvas") {
