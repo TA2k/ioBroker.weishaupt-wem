@@ -32,6 +32,10 @@ Der Adapter liest auch die Daten aus der App aus.
 
 ## Changelog
 
+
+### **WORK IN PROGRESS**
+- (ioBroker-Bot) Adapter requires js-controller >= 6.0.11 now.
+
 ### 0.0.16
 
 * (ta2k) Improve error and login handling
