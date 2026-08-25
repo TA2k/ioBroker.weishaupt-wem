@@ -155,7 +155,7 @@ class WeishauptWem extends utils.Adapter {
      * Returns the axios response, or null on failure.
      */
     async apiRequest(url, data, options = {}) {
-        const { headers, retry = true, delay = 1000 } = options;
+        const { headers, retry = true, delay = 1000, quiet = false } = options;
         if (this.isBackedOff("apiRequest")) {
             return null;
         }
@@ -191,9 +191,10 @@ class WeishauptWem extends utils.Adapter {
                 await this.sleep(5000);
                 return await this.apiRequest(url, data, { ...options, retry: false });
             }
-            this.log.error(`App request failed: ${url}`);
-            this.log.error(error.message || error);
-            error.response && this.log.error(JSON.stringify(error.response.data));
+            const log = quiet ? this.log.debug.bind(this.log) : this.log.error.bind(this.log);
+            log(`App request failed: ${url}`);
+            log(error.message || error);
+            error.response && log(JSON.stringify(error.response.data));
             return null;
         }
     }
@@ -474,20 +475,34 @@ class WeishauptWem extends utils.Adapter {
         }
         this.lastStatisticsFetch = now;
         for (const device of this.deviceArray) {
-            const refresh = await this.apiRequest(`${this.baseUrl}/app/Statistics/Refresh`, { DeviceID: device.ID });
+            const refresh = await this.apiRequest(
+                `${this.baseUrl}/app/Statistics/Refresh`,
+                { DeviceID: device.ID },
+                { quiet: true },
+            );
             if (!refresh) {
                 continue;
             }
+            // Statistics/Refresh returns a JobID; Statistics/Read requires it
+            // (verified against APK v3.0.1 - StatisticsRefreshResult.JobID).
+            const jobId = refresh.data.JobID;
             const groups = refresh.data.GroupTypeDescriptions || [];
+            // Give the backend a moment to build the job result.
+            await this.sleep(2000);
             for (const group of groups) {
                 const groupId = group.GroupType;
-                const stats = await this.apiRequest(`${this.baseUrl}/app/Statistics/Read`, {
-                    DeviceID: device.ID,
-                    ModuleType: 7,
-                    ModuleIndex: 0,
-                    GroupType: groupId,
-                    Type: 1,
-                });
+                const stats = await this.apiRequest(
+                    `${this.baseUrl}/app/Statistics/Read`,
+                    {
+                        DeviceID: device.ID,
+                        JobID: jobId,
+                        ModuleType: 7,
+                        ModuleIndex: 0,
+                        GroupType: groupId,
+                        Type: 1,
+                    },
+                    { quiet: true },
+                );
                 if (!stats) {
                     continue;
                 }

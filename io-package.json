@@ -1,8 +1,12 @@
 {
     "common": {
         "name": "weishaupt-wem",
-        "version": "0.0.20",
+        "version": "0.0.21",
         "news": {
+            "0.0.21": {
+                "en": "Fix Statistics/Read 400 (include JobID from Refresh); optional endpoints log quietly",
+                "de": "Fix Statistics/Read 400 (JobID aus Refresh mitsenden); optionale Endpunkte loggen leise"
+            },
             "0.0.20": {
                 "en": "Map switched-off power/percentage scraped values (Aus/off/--) to numeric 0",
                 "de": "Abgeschaltete Leistungs-/Prozentwerte (Aus/off/--) werden als numerische 0 gespeichert"
