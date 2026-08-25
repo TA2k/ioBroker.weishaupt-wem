@@ -1,8 +1,12 @@
 {
     "common": {
         "name": "weishaupt-wem",
-        "version": "0.0.19",
+        "version": "0.0.20",
         "news": {
+            "0.0.20": {
+                "en": "Map switched-off power/percentage scraped values (Aus/off/--) to numeric 0",
+                "de": "Abgeschaltete Leistungs-/Prozentwerte (Aus/off/--) werden als numerische 0 gespeichert"
+            },
             "0.0.19": {
                 "en": "Fix 'Canvas.Image is not a constructor' crash with jsdom 30 / Node 24",
                 "de": "Fix Absturz 'Canvas.Image is not a constructor' mit jsdom 30 / Node 24"

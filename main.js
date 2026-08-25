@@ -1054,6 +1054,19 @@ class WeishauptWem extends utils.Adapter {
                             if (valueArray[1]) {
                                 unit = valueArray[1];
                             }
+                            // A switched-off power/percentage field is scraped as
+                            // "Aus"/"off"/"--". Store it as numeric 0 so it can be
+                            // graphed (energy counters in kWh are left untouched).
+                            if (
+                                typeof value === "string" &&
+                                (value.toLowerCase() === "aus" ||
+                                    value.toLowerCase() === "off" ||
+                                    value === "--")
+                            ) {
+                                if (labelWoSpaces.endsWith("Leistung") || unit === "kW" || unit === "%" || unit === "W") {
+                                    value = 0;
+                                }
+                            }
                             if (labelWoSpaces === "Status") {
                                 labelWoSpaces = labelWoSpaces + statusCount;
                                 statusCount++;

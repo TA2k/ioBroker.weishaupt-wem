@@ -36,6 +36,10 @@ Der Adapter liest auch die Daten aus der App aus.
 
 ## Changelog
 
+### 0.0.20
+
+* (ta2k) Abgeschaltete Leistungs-/Prozentwerte (Aus/off/--) werden als numerische 0 gespeichert (kWh-Zähler bleiben unberührt)
+
 ### 0.0.19
 
 * (ta2k) Fix Absturz "Canvas.Image is not a constructor" mit jsdom 30 / Node 24 (Canvas-Stub meldet sich jetzt als nicht installiert)
