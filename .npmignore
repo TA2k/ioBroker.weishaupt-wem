@@ -28,3 +28,6 @@ admin/i18n
 maintenance/**
 
 tsconfig.json
+
+.references
+.playwright-mcp

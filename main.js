@@ -9,7 +9,13 @@ const Module = require("module");
 const originalRequire = Module.prototype.require;
 Module.prototype.require = function () {
     if (arguments[0] === "canvas") {
-        return { createCanvas: null, createImageData: null, loadImage: null };
+        // Make jsdom believe canvas is not installed so it uses its built-in
+        // graceful fallback. Returning a partial stub object breaks newer jsdom
+        // (>=22), which then calls `new Canvas.Image()` -> "Canvas.Image is not a
+        // constructor". We do not need any canvas/image rendering for HTML scraping.
+        const error = new Error("Cannot find module 'canvas'");
+        error.code = "MODULE_NOT_FOUND";
+        throw error;
     }
     return originalRequire.apply(this, arguments);
 };

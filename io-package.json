@@ -1,8 +1,12 @@
 {
     "common": {
         "name": "weishaupt-wem",
-        "version": "0.0.18",
+        "version": "0.0.19",
         "news": {
+            "0.0.19": {
+                "en": "Fix 'Canvas.Image is not a constructor' crash with jsdom 30 / Node 24",
+                "de": "Fix Absturz 'Canvas.Image is not a constructor' mit jsdom 30 / Node 24"
+            },
             "0.0.18": {
                 "en": "403 backoff, throttling, robust app API with DeviceStatus/Statistics/CircuitTimes, selectable domain, crash fixes",
                 "de": "403-Backoff, Throttling, robuste App-API mit DeviceStatus/Statistics/CircuitTimes, wählbare Domain, Absturzbehebung"
