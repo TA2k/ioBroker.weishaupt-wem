@@ -465,8 +465,10 @@ class WeishauptWem extends utils.Adapter {
         return device.Modules.some((m) => Array.isArray(m.parameters) && m.parameters.length > 0);
     }
     /**
-     * Fetch historical energy statistics (app/Statistics/Refresh + Read).
-     * Rate limited to once per hour, mirroring hass-WEM-Portal.
+     * Fetch cumulative energy statistics (app/Statistics/Refresh + Read), once per hour.
+     * Request shape verified against APK v3.0.1 (StatisticsReadRequest):
+     * { DeviceID, ModuleType, ModuleIndex, GroupType, Type } - NO JobID.
+     * Type is the time range: 1 = day, 2 = month, 3 = year.
      */
     async getStatistics() {
         const now = Date.now();
@@ -474,6 +476,11 @@ class WeishauptWem extends utils.Adapter {
             return;
         }
         this.lastStatisticsFetch = now;
+        const ranges = [
+            { type: 1, name: "Day" },
+            { type: 2, name: "Month" },
+            { type: 3, name: "Year" },
+        ];
         for (const device of this.deviceArray) {
             const refresh = await this.apiRequest(
                 `${this.baseUrl}/app/Statistics/Refresh`,
@@ -483,48 +490,46 @@ class WeishauptWem extends utils.Adapter {
             if (!refresh) {
                 continue;
             }
-            // Statistics/Refresh returns a JobID; Statistics/Read requires it
-            // (verified against APK v3.0.1 - StatisticsRefreshResult.JobID).
-            const jobId = refresh.data.JobID;
+            this.log.debug(`Statistics/Refresh response: ${JSON.stringify(refresh.data)}`);
             const groups = refresh.data.GroupTypeDescriptions || [];
-            // Give the backend a moment to build the job result.
+            // Give the backend a moment to build the statistics.
             await this.sleep(2000);
             for (const group of groups) {
                 const groupId = group.GroupType;
-                const stats = await this.apiRequest(
-                    `${this.baseUrl}/app/Statistics/Read`,
-                    {
+                for (const range of ranges) {
+                    const body = {
                         DeviceID: device.ID,
-                        JobID: jobId,
                         ModuleType: 7,
                         ModuleIndex: 0,
                         GroupType: groupId,
-                        Type: 1,
-                    },
-                    { quiet: true },
-                );
-                if (!stats) {
-                    continue;
+                        Type: range.type,
+                    };
+                    const stats = await this.apiRequest(`${this.baseUrl}/app/Statistics/Read`, body, { quiet: true });
+                    if (!stats) {
+                        this.log.debug(`Statistics/Read failed for body ${JSON.stringify(body)}`);
+                        continue;
+                    }
+                    const values = stats.data.Values || [];
+                    if (!values.length) {
+                        continue;
+                    }
+                    const latest = values[values.length - 1];
+                    const name = (group.Description || "Energy_" + groupId).replace(/[^\wäöüÄÖÜß]/g, "_");
+                    const id = device.ID + ".statistics." + name + "_" + range.name;
+                    await this.setObjectNotExistsAsync(id, {
+                        type: "state",
+                        common: {
+                            name: (group.Description || "Energy " + groupId) + " " + range.name,
+                            role: "value.power.consumption",
+                            type: "number",
+                            unit: stats.data.Unit || "kWh",
+                            write: false,
+                            read: true,
+                        },
+                        native: {},
+                    });
+                    this.setState(id, latest.Value != null ? latest.Value : 0, true);
                 }
-                const values = stats.data.Values || [];
-                if (!values.length) {
-                    continue;
-                }
-                const latest = values[values.length - 1];
-                const id = device.ID + ".statistics.Energy_" + groupId;
-                await this.setObjectNotExistsAsync(id, {
-                    type: "state",
-                    common: {
-                        name: group.Description || "Energy " + groupId,
-                        role: "value.power.consumption",
-                        type: "number",
-                        unit: stats.data.Unit || "kWh",
-                        write: false,
-                        read: true,
-                    },
-                    native: {},
-                });
-                this.setState(id, latest.Value != null ? latest.Value : 0, true);
             }
         }
     }

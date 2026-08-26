@@ -1,8 +1,12 @@
 {
     "common": {
         "name": "weishaupt-wem",
-        "version": "0.0.21",
+        "version": "0.0.22",
         "news": {
+            "0.0.22": {
+                "en": "Statistics/Read matched to APK (no JobID), fetch day/month/year energy; debug instrumentation",
+                "de": "Statistics/Read an APK angeglichen (ohne JobID), Energie für Tag/Monat/Jahr; Debug-Ausgabe"
+            },
             "0.0.21": {
                 "en": "Fix Statistics/Read 400 (include JobID from Refresh); optional endpoints log quietly",
                 "de": "Fix Statistics/Read 400 (JobID aus Refresh mitsenden); optionale Endpunkte loggen leise"

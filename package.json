@@ -45,7 +45,7 @@
         "test:package": "mocha test/package --exit",
         "test:unit": "mocha test/unit --exit"
     },
-    "version": "0.0.21",
+    "version": "0.0.22",
      "files": [
     "admin{,/!(src)/**}/!(tsconfig|tsconfig.*|.eslintrc).{json,json5}",
     "admin{,/!(src)/**}/*.{html,css,png,svg,jpg,js}",
