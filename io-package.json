@@ -113,6 +113,7 @@
         "extIcon": "https://raw.githubusercontent.com/ta2k/ioBroker.weishaupt-wem/master/admin/weishaupt-wem.png",
         "readme": "https://github.com/ta2k/ioBroker.weishaupt-wem/blob/master/README.md",
         "loglevel": "info",
+        "tier": 2,
         "mode": "daemon",
         "type": "climate-control",
         "compact": true,
