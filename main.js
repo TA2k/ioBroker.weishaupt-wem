@@ -1083,7 +1083,8 @@ class WeishauptWem extends utils.Adapter {
                                     value.toLowerCase() === "off" ||
                                     value === "--")
                             ) {
-                                if (labelWoSpaces.endsWith("Leistung") || unit === "kW" || unit === "%" || unit === "W") {
+                                // "Leistungsanforderung" has no unit while the heat pump is off, so match on the name
+                                if (labelWoSpaces.includes("Leistung") || unit === "kW" || unit === "%" || unit === "W") {
                                     value = 0;
                                 }
                             }
